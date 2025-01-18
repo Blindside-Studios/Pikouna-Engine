@@ -4,6 +4,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.12.35527.113 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pikouna Interface", "Pikouna Interface\Pikouna Interface.csproj", "{A622664C-4BFD-47B3-90F1-F23C579FDD4C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1B809C29-2926-4F2E-AB6C-2EF70C9AB7F4} = {1B809C29-2926-4F2E-AB6C-2EF70C9AB7F4}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pikouna Engine", "Pikouna Engine\Pikouna Engine.csproj", "{1B809C29-2926-4F2E-AB6C-2EF70C9AB7F4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9B19E030-A6D7-42FC-9243-9F5F71841A9A} = {9B19E030-A6D7-42FC-9243-9F5F71841A9A}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ozora", "..\..\Ozora-Engine\Ozora-Engine\Ozora\Ozora.csproj", "{9B19E030-A6D7-42FC-9243-9F5F71841A9A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +43,30 @@ Global
 		{A622664C-4BFD-47B3-90F1-F23C579FDD4C}.Release|x86.ActiveCfg = Release|x86
 		{A622664C-4BFD-47B3-90F1-F23C579FDD4C}.Release|x86.Build.0 = Release|x86
 		{A622664C-4BFD-47B3-90F1-F23C579FDD4C}.Release|x86.Deploy.0 = Release|x86
+		{1B809C29-2926-4F2E-AB6C-2EF70C9AB7F4}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{1B809C29-2926-4F2E-AB6C-2EF70C9AB7F4}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{1B809C29-2926-4F2E-AB6C-2EF70C9AB7F4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1B809C29-2926-4F2E-AB6C-2EF70C9AB7F4}.Debug|x64.Build.0 = Debug|Any CPU
+		{1B809C29-2926-4F2E-AB6C-2EF70C9AB7F4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1B809C29-2926-4F2E-AB6C-2EF70C9AB7F4}.Debug|x86.Build.0 = Debug|Any CPU
+		{1B809C29-2926-4F2E-AB6C-2EF70C9AB7F4}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{1B809C29-2926-4F2E-AB6C-2EF70C9AB7F4}.Release|ARM64.Build.0 = Release|Any CPU
+		{1B809C29-2926-4F2E-AB6C-2EF70C9AB7F4}.Release|x64.ActiveCfg = Release|Any CPU
+		{1B809C29-2926-4F2E-AB6C-2EF70C9AB7F4}.Release|x64.Build.0 = Release|Any CPU
+		{1B809C29-2926-4F2E-AB6C-2EF70C9AB7F4}.Release|x86.ActiveCfg = Release|Any CPU
+		{1B809C29-2926-4F2E-AB6C-2EF70C9AB7F4}.Release|x86.Build.0 = Release|Any CPU
+		{9B19E030-A6D7-42FC-9243-9F5F71841A9A}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{9B19E030-A6D7-42FC-9243-9F5F71841A9A}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{9B19E030-A6D7-42FC-9243-9F5F71841A9A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9B19E030-A6D7-42FC-9243-9F5F71841A9A}.Debug|x64.Build.0 = Debug|Any CPU
+		{9B19E030-A6D7-42FC-9243-9F5F71841A9A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9B19E030-A6D7-42FC-9243-9F5F71841A9A}.Debug|x86.Build.0 = Debug|Any CPU
+		{9B19E030-A6D7-42FC-9243-9F5F71841A9A}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{9B19E030-A6D7-42FC-9243-9F5F71841A9A}.Release|ARM64.Build.0 = Release|Any CPU
+		{9B19E030-A6D7-42FC-9243-9F5F71841A9A}.Release|x64.ActiveCfg = Release|Any CPU
+		{9B19E030-A6D7-42FC-9243-9F5F71841A9A}.Release|x64.Build.0 = Release|Any CPU
+		{9B19E030-A6D7-42FC-9243-9F5F71841A9A}.Release|x86.ActiveCfg = Release|Any CPU
+		{9B19E030-A6D7-42FC-9243-9F5F71841A9A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

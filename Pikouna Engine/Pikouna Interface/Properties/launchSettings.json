@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Pikouna Interface (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Pikouna Interface (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

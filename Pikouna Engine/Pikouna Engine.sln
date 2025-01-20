@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113 d17.12
+VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pikouna Interface", "Pikouna Interface\Pikouna Interface.csproj", "{A622664C-4BFD-47B3-90F1-F23C579FDD4C}"
 	ProjectSection(ProjectDependencies) = postProject

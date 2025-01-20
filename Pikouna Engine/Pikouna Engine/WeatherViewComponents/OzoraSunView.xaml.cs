@@ -14,6 +14,11 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Ozora;
 using System.Diagnostics;
+using System.Numerics;
+using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Composition;
+using Microsoft.Graphics.Canvas.UI.Xaml;
+using Microsoft.UI;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -25,13 +30,14 @@ namespace Pikouna_Engine.WeatherViewComponents
     /// </summary>
     public sealed partial class OzoraSunView : Page
     {
-        OzoraEngine Ozora = new OzoraEngine();
+        private OzoraEngine Ozora = new OzoraEngine();
+        private Vector2 _sunPosition = new Vector2(0, 0); // Initial position
 
         public OzoraSunView()
         {
             this.InitializeComponent();
             this.NavigationCacheMode = NavigationCacheMode.Disabled;
-            this.Loaded += PhysicsSunSimulation_Loaded;
+            this.SunGrid.Loaded += PhysicsSunSimulation_Loaded;
             this.Unloaded += PhysicsSunSimulation_Unloaded;
         }
 
@@ -75,6 +81,20 @@ namespace Pikouna_Engine.WeatherViewComponents
             Ozora.Physics.MouseCursorEngaged = true;
         }
 
+        public void MoveSun(Vector2 newPosition)
+        {
+            _sunPosition = newPosition;
+
+            // Trigger a redraw to reflect the updated position
+            SunCanvas.Invalidate();
+        }
+
+        private void SunCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
+        {
+            // Draw the sun at the current position
+            args.DrawingSession.FillCircle(_sunPosition, 25, Colors.Yellow); // Radius = 25
+        }
+
         private void MouseViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (Ozora != null)
@@ -86,17 +106,7 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void Physics_ObjectPositionCalculated(object sender, ObjectPositionUpdatedEvent e)
         {
-            DispatcherQueue.TryEnqueue(() =>
-            {
-                this.SunObject.Translation = e.NewTranslationVector;
-                if (SunObject.Translation.Y > SunGrid.ActualHeight * 0.33)
-                {
-                    double nightFactor = Math.Clamp((SunObject.Translation.Y - (SunGrid.ActualHeight * 0.33)) / (SunGrid.ActualHeight * 0.5), 0, 1);
-                    double expoNightFactor = Math.Pow(2, nightFactor) - 1;
-                    NightSky.Opacity = expoNightFactor;
-                    EveningSky.Opacity = Math.Clamp(nightFactor * 2, 0, 1);
-                }
-            });
+            MoveSun(new Vector2(e.NewTranslationVector.X, e.NewTranslationVector.Y));
         }
 
         private void SunGrid_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -107,7 +117,7 @@ namespace Pikouna_Engine.WeatherViewComponents
             if (Ozora.Physics.Interface != null)
             {
                 Ozora.Physics.Interface.AreaDimensions =
-                    new Windows.Foundation.Point(SunGrid.ActualWidth, SunGrid.ActualHeight);
+                new Windows.Foundation.Point(SunGrid.ActualWidth, SunGrid.ActualHeight);
             }
         }
     }

@@ -34,19 +34,16 @@ namespace Pikouna_Interface
         private void EverythingGrid_PointerMoved(object sender, PointerRoutedEventArgs e)
         {
             OzoraViewModel.Instance.MousePosition = e.GetCurrentPoint((UIElement)sender).Position;
-            Debug.WriteLine("mouse pointer at " + e.GetCurrentPoint((UIElement)sender).Position);
         }
 
         private void EverythingGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
         {
             OzoraViewModel.Instance.MouseEngaged = true;
-            Debug.WriteLine("pointer entered");
         }
 
         private void EverythingGrid_PointerExited(object sender, PointerRoutedEventArgs e)
         {
             OzoraViewModel.Instance.MouseEngaged = false;
-            Debug.WriteLine("pointer exited");
         }
     }
 }

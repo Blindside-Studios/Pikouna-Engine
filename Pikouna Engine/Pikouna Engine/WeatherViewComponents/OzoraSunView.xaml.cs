@@ -92,7 +92,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void SunCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
         {
             // Draw the sun at the current position
-            args.DrawingSession.FillCircle(_sunPosition, 25, Colors.Yellow); // Radius = 25
+            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + 50, _sunPosition.Y + 50), 50, Colors.Yellow); // Radius = 50, therefore diameter = 100
         }
 
         private void MouseViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

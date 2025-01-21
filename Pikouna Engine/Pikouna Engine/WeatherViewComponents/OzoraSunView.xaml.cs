@@ -13,12 +13,15 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Ozora;
+using Pikouna_Engine;
 using System.Diagnostics;
 using System.Numerics;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Composition;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI;
+using Microsoft.Graphics.Canvas.Brushes;
+using Microsoft.Graphics.Canvas;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -30,8 +33,16 @@ namespace Pikouna_Engine.WeatherViewComponents
     /// </summary>
     public sealed partial class OzoraSunView : Page
     {
+        private int _SunDimensions = 100;
+        private int _SunRadius = 50;
+
+        private double _nightTimeModifier = 0;
+
+
         private OzoraEngine Ozora = new OzoraEngine();
         private Vector2 _sunPosition = new Vector2(0, 0); // Initial position
+        private double _workingWidth = 0;
+        private double _workingHeight = 0;
 
         public OzoraSunView()
         {
@@ -39,6 +50,30 @@ namespace Pikouna_Engine.WeatherViewComponents
             this.NavigationCacheMode = NavigationCacheMode.Disabled;
             this.SunGrid.Loaded += PhysicsSunSimulation_Loaded;
             this.Unloaded += PhysicsSunSimulation_Unloaded;
+        }
+
+        private void Physics_ObjectPositionCalculated(object sender, ObjectPositionUpdatedEvent e)
+        {
+            _sunPosition = new Vector2(e.NewTranslationVector.X, e.NewTranslationVector.Y);
+
+            double _newNightTimeModifier = Calculations.GetNightModifier(e.NewTranslationVector.Y, _workingHeight);
+            if (_newNightTimeModifier != _nightTimeModifier)
+            {
+                _nightTimeModifier = _newNightTimeModifier;
+                SkyCanvas.Invalidate();
+            }
+
+            // Trigger a redraw to reflect the updated view
+            SunCanvas.Invalidate();
+        }
+
+        private void MouseViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (Ozora != null)
+            {
+                Ozora.Physics.Interface.PointerLocation = OzoraViewModel.Instance.MousePosition;
+                Ozora.Physics.MouseCursorEngaged = OzoraViewModel.Instance.MouseEngaged;
+            }
         }
 
         private void PhysicsSunSimulation_Unloaded(object sender, RoutedEventArgs e)
@@ -68,8 +103,8 @@ namespace Pikouna_Engine.WeatherViewComponents
 
             Ozora.Physics.Interface = new OzoraInterface()
             {
-                ObjectWidth = (float)SunObject.ActualWidth,
-                ObjectHeight = (float)SunObject.ActualHeight,
+                ObjectWidth = _SunDimensions,
+                ObjectHeight = _SunDimensions,
                 Settings = SunSettings,
                 AreaDimensions = new Windows.Foundation.Point(SunGrid.ActualWidth, SunGrid.ActualHeight)
             };
@@ -77,36 +112,11 @@ namespace Pikouna_Engine.WeatherViewComponents
             Ozora.Physics.ObjectPositionCalculated += Physics_ObjectPositionCalculated;
             OzoraViewModel.Instance.PropertyChanged += MouseViewModel_PropertyChanged;
 
+            _workingWidth = SunGrid.ActualWidth;
+            _workingHeight = SunGrid.ActualHeight;
+
             Ozora.Physics.StartSimulation();
             Ozora.Physics.MouseCursorEngaged = true;
-        }
-
-        public void MoveSun(Vector2 newPosition)
-        {
-            _sunPosition = newPosition;
-
-            // Trigger a redraw to reflect the updated position
-            SunCanvas.Invalidate();
-        }
-
-        private void SunCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
-        {
-            // Draw the sun at the current position
-            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + 50, _sunPosition.Y + 50), 50, Colors.Yellow); // Radius = 50, therefore diameter = 100
-        }
-
-        private void MouseViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (Ozora != null)
-            {
-                Ozora.Physics.Interface.PointerLocation = OzoraViewModel.Instance.MousePosition;
-                Ozora.Physics.MouseCursorEngaged = OzoraViewModel.Instance.MouseEngaged;
-            }
-        }
-
-        private void Physics_ObjectPositionCalculated(object sender, ObjectPositionUpdatedEvent e)
-        {
-            MoveSun(new Vector2(e.NewTranslationVector.X, e.NewTranslationVector.Y));
         }
 
         private void SunGrid_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -116,8 +126,50 @@ namespace Pikouna_Engine.WeatherViewComponents
             /// which initializes the Interface
             if (Ozora.Physics.Interface != null)
             {
+                _workingWidth = SunGrid.ActualWidth;
+                _workingHeight = SunGrid.ActualHeight;
                 Ozora.Physics.Interface.AreaDimensions =
                 new Windows.Foundation.Point(SunGrid.ActualWidth, SunGrid.ActualHeight);
+            }
+        }
+
+        private void SunCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
+        {
+            // Sun object
+            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), _SunRadius, Colors.Yellow);
+        }
+
+        private void SkyCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
+        {
+            double modifier = Math.Max(0, Math.Min(1, _nightTimeModifier));
+
+            // Interpolate the correct checkpoint colors
+            var topColor = PikounaColors.GetInterpolatedColor(modifier, PikounaColors.TopCPs);
+            var bottomColor = PikounaColors.GetInterpolatedColor(modifier, PikounaColors.BottomCPs);
+
+            // Build gradient stops (may add more in the future)
+            float bottomWeight = 0.6f;
+            var gradientStops = new CanvasGradientStop[]
+            {
+                new CanvasGradientStop { Position = 0f, Color = topColor },
+                new CanvasGradientStop { Position = bottomWeight, Color = bottomColor }
+            };
+
+            // Brush Creation
+            using (var gradientBrush = new CanvasLinearGradientBrush(
+                sender,
+                gradientStops,
+                CanvasEdgeBehavior.Clamp,
+                CanvasAlphaMode.Premultiplied))
+            {
+                // By default, linear gradient goes from left to right. 
+                // We want top to bottom, so set StartPoint & EndPoint
+                gradientBrush.StartPoint = new Vector2(0, 0);
+                gradientBrush.EndPoint = new Vector2(0, (float)sender.ActualHeight);
+
+                // 4. Fill the entire control
+                var bounds = new Rect(0, 0, _workingWidth, _workingHeight);
+                args.DrawingSession.FillRectangle(bounds, gradientBrush);
             }
         }
     }

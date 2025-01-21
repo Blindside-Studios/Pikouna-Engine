@@ -10,12 +10,7 @@
     mc:Ignorable="d">
 
     <Grid x:Name="SunGrid" SizeChanged="SunGrid_SizeChanged">
+        <win2d:CanvasControl x:Name="SkyCanvas" Draw="SkyCanvas_Draw" />
         <win2d:CanvasControl x:Name="SunCanvas" Draw="SunCanvas_Draw" />
-        <Grid Opacity="0">
-            <Image x:Name="DaySky" Opacity="1" Source="/AnimThemes/Assets/Bliss/BlueSkyGradient.png" Stretch="Fill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-            <Image x:Name="EveningSky" Opacity="0" Source="/AnimThemes/Assets/Bliss/EveningSkyGradient.png" Stretch="Fill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-            <Image x:Name="NightSky" Opacity="0" Source="/AnimThemes/Assets/Bliss/NightSkyGradient.png" Stretch="Fill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-            <Rectangle x:Name="SunObject" Fill="Yellow" Height="100" Width="100" RadiusX="50" HorizontalAlignment="Left" VerticalAlignment="Top" RadiusY="50"/>
-        </Grid>
     </Grid>
 </Page>

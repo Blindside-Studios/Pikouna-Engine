@@ -14,11 +14,11 @@
             <ColumnDefinition Width="300"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <StackPanel Background="Red" Grid.Column="0">
+        <StackPanel Background="Black" Grid.Column="0">
             
         </StackPanel>
         <Grid x:Name="EverythingGrid" PointerEntered="EverythingGrid_PointerEntered" PointerExited="EverythingGrid_PointerExited" PointerMoved="EverythingGrid_PointerMoved" Grid.Column="1">
-            <Rectangle Fill="Blue" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            <Rectangle Fill="Gray" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
             <Frame x:Name="ContentFrame"/>
         </Grid>
     </Grid>

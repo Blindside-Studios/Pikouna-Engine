@@ -1,0 +1,211 @@
+using Microsoft.UI;
+using Microsoft.UI.Xaml;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.Design;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Pikouna_Engine
+{
+    public class Calculations
+    {
+
+
+        public static double GetNightModifier(double position, double _workingHeight)
+        {
+            if (position > (_workingHeight / 3) * 2)
+            {
+                return 1;
+            }
+            else if (position > (_workingHeight / 3))
+            {
+                // Calculate the relative distance from the top that the vector is in the middle third of the grid from 0 to 1.
+                double _nightTimeModifier = (position - (_workingHeight / 3)) / (_workingHeight / 3);
+                // Clamp to avoid problematic situations
+                if (_nightTimeModifier < 0) return 0;
+                else if (_nightTimeModifier > 1) return 1;
+                else return _nightTimeModifier;
+            }
+            else return 0;
+        }
+    }
+
+    public class PikounaColors
+    {
+        public static List<GradientCP> TopCPs = new List<GradientCP>
+        {
+            new GradientCP{ Position = 0, Color = GradientCP.FromHex("#6FC5F6") },
+            new GradientCP{ Position = 0.5, Color = GradientCP.FromHex("#8509F9") },
+            new GradientCP{ Position = 1, Color = GradientCP.FromHex("#050416") }
+        };
+
+        public static List<GradientCP> BottomCPs = new List<GradientCP>
+        {
+            new GradientCP{ Position = 0, Color = GradientCP.FromHex("#117CD3") },
+            new GradientCP{ Position = 0.5, Color = GradientCP.FromHex("#FF8B28") },
+            new GradientCP{ Position = 1, Color = GradientCP.FromHex("#0C0B25") }
+        };
+
+        public static Windows.UI.Color GetInterpolatedColor(double position, List<GradientCP> controlPoints)
+        {
+            // 1. Clamp input so we don't step out of range
+            position = Math.Max(0, Math.Min(1, position));
+
+            // 2. Ensure controlPoints are sorted by Position
+            var sortedCPs = controlPoints.OrderBy(cp => cp.Position).ToList();
+
+            // 3. If position is <= first CP or >= last CP, just return that edge color
+            if (position <= sortedCPs.First().Position)
+                return sortedCPs.First().Color;
+
+            if (position >= sortedCPs.Last().Position)
+                return sortedCPs.Last().Color;
+
+            // 4. Otherwise, find the two CPs that bracket our position
+            for (int i = 0; i < sortedCPs.Count - 1; i++)
+            {
+                var cp1 = sortedCPs[i];
+                var cp2 = sortedCPs[i + 1];
+
+                if (position >= cp1.Position && position <= cp2.Position)
+                {
+                    // 5. Compute fraction between these two control points
+                    double range = cp2.Position - cp1.Position;
+                    double lerpAmount = (position - cp1.Position) / range;
+                    return InterpolateColor(cp1.Color, cp2.Color, (float)lerpAmount);
+                }
+            }
+
+            // Fallback (should never happen if your positions cover [0,1], but in case)
+            return sortedCPs.Last().Color;
+        }
+
+        private static Windows.UI.Color InterpolateColor(Windows.UI.Color start, Windows.UI.Color end, float t)
+        {
+            byte a = (byte)(start.A + (end.A - start.A) * t);
+            byte r = (byte)(start.R + (end.R - start.R) * t);
+            byte g = (byte)(start.G + (end.G - start.G) * t);
+            byte b = (byte)(start.B + (end.B - start.B) * t);
+            return Windows.UI.Color.FromArgb(a, r, g, b);
+        }
+    }
+
+    /// <summary>
+    /// CP STANDS FOR CONTROL POINT, NOT WHATEVER YOU MIGHT THINK!!!
+    /// <para>Anyways, a GradientCP stores a position and a color that go together in the checkpoint.</para>
+    /// <para>Naturally, you can use the position as a position in space, but it is in fact intended to be used to bring a color of one side of the gradient to a position of the curor.</para>
+    /// <para>The gradient can then be transitioned over these control points on each side as the cursor moves.</para>
+    /// We have the following:
+    /// /// <list type="bullet">
+    /// <item>
+    /// <term>Position</term>
+    /// <description>The Position of the cursor in relative space measured from the top. 0 is at the top, 1 is at the bottom.</description>
+    /// </item>
+    /// <item>
+    /// <term>Color</term>
+    /// <description>The Color in Windows.UI.Color - use FromRGB() and FromHex() to create</description>
+    /// </item>
+    /// </list>
+    /// Then put them in a list or smth.
+    /// </summary>
+    public class GradientCP
+    {
+        public double Position { get; set; } // Position between 0 (top) and 1 (bottom)
+        public Windows.UI.Color Color { get; set; }
+
+        public static Windows.UI.Color FromRGB(byte r, byte g, byte b)
+        {
+            return Windows.UI.Color.FromArgb(255, r, g, b);
+        }
+
+        public static Windows.UI.Color FromHex(string hex)
+        {
+            if (hex.StartsWith("#")) hex = hex.Substring(1);
+
+            if (hex.Length == 6)
+            {
+                byte r = Convert.ToByte(hex.Substring(0, 2), 16);
+                byte g = Convert.ToByte(hex.Substring(2, 2), 16);
+                byte b = Convert.ToByte(hex.Substring(4, 2), 16);
+
+                return Windows.UI.Color.FromArgb(255, r, g, b);
+            }
+            else throw new ArgumentException("HEX value must be in the format RRGGBB.");
+        }
+    }
+
+
+    public class OzoraViewModel : INotifyPropertyChanged
+    {
+        private static OzoraViewModel _instance;
+        public static OzoraViewModel Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new OzoraViewModel();
+                }
+                return _instance;
+            }
+        }
+
+        public Windows.Foundation.Point MousePosition
+        {
+            get => _mousePosition;
+            set
+            {
+                if (_mousePosition != value)
+                {
+                    _mousePosition = value;
+                    OnPropertyChanged(nameof(MousePosition));
+                }
+            }
+        }
+        private Windows.Foundation.Point _mousePosition;
+
+        public bool MouseEngaged
+        {
+            get => _mouseEngaged;
+            set
+            {
+                if (value != _mouseEngaged)
+                {
+                    _mouseEngaged = value;
+                    OnPropertyChanged(nameof(MouseEngaged));
+                }
+            }
+        }
+        private bool _mouseEngaged = true;
+
+        public ElementTheme ViewTheme
+        {
+            get => _viewTheme;
+            set
+            {
+                if (value != _viewTheme)
+                {
+                    _viewTheme = value;
+                    OnThemeChangeRequested(nameof(ViewTheme));
+                }
+            }
+        }
+        private ElementTheme _viewTheme = ElementTheme.Default;
+
+        public event PropertyChangedEventHandler ThemeChangeRequested;
+        protected virtual void OnThemeChangeRequested(string propertyName)
+        {
+            ThemeChangeRequested?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+}

@@ -34,16 +34,18 @@ namespace Pikouna_Engine
             else return 0;
         }
 
-        public static List<Star> GenerateStarPositions(int amount)
+        public static List<Star> GenerateStarPositions(int amount, bool willAnimate)
         {
             Random rnd = new Random();
             var list = new List<Star>();
             for (int i = 0; i < amount; i++)
             {
+                float radius = willAnimate ? (float)(rnd.NextDouble() + 1.5) : (float)(rnd.NextDouble() + 1);
                 var vect = new Vector2((float)rnd.NextDouble(), (float)rnd.NextDouble());
                 double opacity = ((double)rnd.Next(50, 100)) / 100;
                 list.Add(new Star()
                 {
+                    Radius = radius,
                     Position = vect,
                     Opacity = opacity,
                     MaximumChangePerUpdate = rnd.NextDouble() * 0.2,
@@ -116,6 +118,7 @@ namespace Pikouna_Engine
 
     public class Star
     {
+        public float Radius { get;set; }
         public Vector2 Position { get; set; }
         public double Opacity { get => _opacity;
             set

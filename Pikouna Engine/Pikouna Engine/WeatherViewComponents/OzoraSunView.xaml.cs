@@ -152,8 +152,8 @@ namespace Pikouna_Engine.WeatherViewComponents
 
             _workingWidth = SunGrid.ActualWidth;
             _workingHeight = SunGrid.ActualHeight;
-            BackgroundStars = Calculations.GenerateStarPositions(Convert.ToInt32(_workingHeight * _workingWidth / 2000 * 0.5));
-            AnimatedStars = Calculations.GenerateStarPositions(Convert.ToInt32(_workingHeight * _workingWidth / 2000 * 0.5));
+            BackgroundStars = Calculations.GenerateStarPositions(Convert.ToInt32(_workingHeight * _workingWidth / 2000 * 0.5), false);
+            AnimatedStars = Calculations.GenerateStarPositions(Convert.ToInt32(_workingHeight * _workingWidth / 2000 * 0.5), true);
 
             twinklingTimer.Interval = TimeSpan.FromMilliseconds(1000/_starFramerate); // Adjust interval as needed
             twinklingTimer.Tick += (s, e) => StarCanvas.Invalidate();
@@ -235,7 +235,7 @@ namespace Pikouna_Engine.WeatherViewComponents
                     Colors.LightGoldenrodYellow.B
                 );
 
-                args.DrawingSession.FillCircle(new Vector2((float)_workingWidth * star.Position.X, (float)_workingHeight * star.Position.Y), 2, starColor);
+                args.DrawingSession.FillCircle(new Vector2((float)_workingWidth * star.Position.X, (float)_workingHeight * star.Position.Y), star.Radius, starColor);
             }
         }
 
@@ -251,7 +251,7 @@ namespace Pikouna_Engine.WeatherViewComponents
                     Colors.LightGoldenrodYellow.B
                 );
 
-                args.DrawingSession.FillCircle(new Vector2((float)_workingWidth * star.Position.X, (float)_workingHeight * star.Position.Y), 2, starColor);
+                args.DrawingSession.FillCircle(new Vector2((float)_workingWidth * star.Position.X, (float)_workingHeight * star.Position.Y), star.Radius, starColor);
             }
         }
     }

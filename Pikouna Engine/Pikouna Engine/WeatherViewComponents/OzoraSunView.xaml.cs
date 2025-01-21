@@ -39,6 +39,7 @@ namespace Pikouna_Engine.WeatherViewComponents
     {
         private int _SunDimensions = 100;
         private int _SunRadius = 50;
+        private int _starFramerate = 12;
 
         private double _nightTimeModifier = 0;
         private double _starOpacityModifier = 0;
@@ -47,7 +48,9 @@ namespace Pikouna_Engine.WeatherViewComponents
         private Vector2 _sunPosition = new Vector2(0, 0); // Initial position
         private double _workingWidth = 0;
         private double _workingHeight = 0;
-        private List<Star> RenderedStars = new List<Star>();
+        
+        private List<Star> BackgroundStars = new List<Star>();
+        private List<Star> AnimatedStars = new List<Star>();
         DispatcherTimer twinklingTimer = new DispatcherTimer();
 
         DispatcherQueue dispatcherQueue;
@@ -78,6 +81,7 @@ namespace Pikouna_Engine.WeatherViewComponents
                         dispatcherQueue.TryEnqueue(() =>
                         {
                             StarCanvas.Opacity = _newStarOpacityModifier;
+                            BackgroundStarCanvas.Opacity = _newStarOpacityModifier * 0.5;
                             _starOpacityModifier = _newStarOpacityModifier;
                             if (_starOpacityModifier > 0 && !twinklingTimer.IsEnabled) twinklingTimer.Start();
                         });
@@ -89,6 +93,7 @@ namespace Pikouna_Engine.WeatherViewComponents
                         if (twinklingTimer.IsEnabled) twinklingTimer.Stop();
                         _starOpacityModifier = 0;
                         StarCanvas.Opacity = 0;
+                        BackgroundStarCanvas.Opacity = 0;
                     });
                 }
                 
@@ -147,9 +152,10 @@ namespace Pikouna_Engine.WeatherViewComponents
 
             _workingWidth = SunGrid.ActualWidth;
             _workingHeight = SunGrid.ActualHeight;
-            RenderedStars = Calculations.GenerateStarPositions(Convert.ToInt32(_workingHeight * _workingWidth / 2000));
+            BackgroundStars = Calculations.GenerateStarPositions(Convert.ToInt32(_workingHeight * _workingWidth / 2000 * 0.5));
+            AnimatedStars = Calculations.GenerateStarPositions(Convert.ToInt32(_workingHeight * _workingWidth / 2000 * 0.5));
 
-            twinklingTimer.Interval = TimeSpan.FromMilliseconds(50); // Adjust interval as needed
+            twinklingTimer.Interval = TimeSpan.FromMilliseconds(1000/_starFramerate); // Adjust interval as needed
             twinklingTimer.Tick += (s, e) => StarCanvas.Invalidate();
 
             Ozora.Physics.StartSimulation();
@@ -216,11 +222,27 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void StarCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
         {
-            foreach (Star star in RenderedStars)
+            foreach (Star star in AnimatedStars)
             {
                 // Let the star generate a new opacity to animate
                 star.CreateNewOpacity();
 
+                // Define star color with dynamic alpha
+                var starColor = Windows.UI.Color.FromArgb(
+                    (byte)(255 * star.Opacity), // alpha channel
+                    Colors.LightGoldenrodYellow.R,
+                    Colors.LightGoldenrodYellow.G,
+                    Colors.LightGoldenrodYellow.B
+                );
+
+                args.DrawingSession.FillCircle(new Vector2((float)_workingWidth * star.Position.X, (float)_workingHeight * star.Position.Y), 2, starColor);
+            }
+        }
+
+        private void BackgroundStars_Draw(CanvasControl sender, CanvasDrawEventArgs args)
+        {
+            foreach (Star star in BackgroundStars)
+            {
                 // Define star color with dynamic alpha
                 var starColor = Windows.UI.Color.FromArgb(
                     (byte)(255 * star.Opacity), // alpha channel

@@ -22,6 +22,10 @@ using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.UI;
 using Microsoft.Graphics.Canvas.Brushes;
 using Microsoft.Graphics.Canvas;
+using Microsoft.Graphics.Canvas.Geometry;
+using Microsoft.UI.Xaml.Shapes;
+using System.Globalization;
+using Microsoft.UI.Dispatching;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -37,16 +41,21 @@ namespace Pikouna_Engine.WeatherViewComponents
         private int _SunRadius = 50;
 
         private double _nightTimeModifier = 0;
-
+        private double _starOpacityModifier = 0;
 
         private OzoraEngine Ozora = new OzoraEngine();
         private Vector2 _sunPosition = new Vector2(0, 0); // Initial position
         private double _workingWidth = 0;
         private double _workingHeight = 0;
+        private List<Star> RenderedStars = new List<Star>();
+        DispatcherTimer twinklingTimer = new DispatcherTimer();
+
+        DispatcherQueue dispatcherQueue;
 
         public OzoraSunView()
         {
             this.InitializeComponent();
+            dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
             this.NavigationCacheMode = NavigationCacheMode.Disabled;
             this.SunGrid.Loaded += PhysicsSunSimulation_Loaded;
             this.Unloaded += PhysicsSunSimulation_Unloaded;
@@ -59,6 +68,30 @@ namespace Pikouna_Engine.WeatherViewComponents
             double _newNightTimeModifier = Calculations.GetNightModifier(e.NewTranslationVector.Y, _workingHeight);
             if (_newNightTimeModifier != _nightTimeModifier)
             {
+                // start and handle star-related things
+                if (_newNightTimeModifier >= 0.5)
+                {
+                    // use exponential function to make the transition smoother
+                    var _newStarOpacityModifier = 0.1 * Math.Pow(11, (_nightTimeModifier - 0.5) * 4) - 0.1;
+                    if (_starOpacityModifier != _newStarOpacityModifier)
+                    {
+                        dispatcherQueue.TryEnqueue(() =>
+                        {
+                            StarCanvas.Opacity = _newStarOpacityModifier;
+                            _starOpacityModifier = _newStarOpacityModifier;
+                            if (_starOpacityModifier > 0 && !twinklingTimer.IsEnabled) twinklingTimer.Start();
+                        });
+                    }
+                }
+                else
+                {
+                    dispatcherQueue.TryEnqueue(() => {
+                        if (twinklingTimer.IsEnabled) twinklingTimer.Stop();
+                        _starOpacityModifier = 0;
+                        StarCanvas.Opacity = 0;
+                    });
+                }
+                
                 _nightTimeModifier = _newNightTimeModifier;
                 SkyCanvas.Invalidate();
             }
@@ -114,6 +147,10 @@ namespace Pikouna_Engine.WeatherViewComponents
 
             _workingWidth = SunGrid.ActualWidth;
             _workingHeight = SunGrid.ActualHeight;
+            RenderedStars = Calculations.GenerateStarPositions(Convert.ToInt32(_workingHeight * _workingWidth / 2000));
+
+            twinklingTimer.Interval = TimeSpan.FromMilliseconds(50); // Adjust interval as needed
+            twinklingTimer.Tick += (s, e) => StarCanvas.Invalidate();
 
             Ozora.Physics.StartSimulation();
             Ozora.Physics.MouseCursorEngaged = true;
@@ -148,12 +185,16 @@ namespace Pikouna_Engine.WeatherViewComponents
             var bottomColor = PikounaColors.GetInterpolatedColor(modifier, PikounaColors.BottomCPs);
 
             // Build gradient stops (may add more in the future)
-            float bottomWeight = 0.6f;
+            // Easing function (quadratic)
+            float EaseOutQuad(float t) => t * (2 - t);
+
+            // Adjust stop positions using easing
             var gradientStops = new CanvasGradientStop[]
             {
-                new CanvasGradientStop { Position = 0f, Color = topColor },
-                new CanvasGradientStop { Position = bottomWeight, Color = bottomColor }
+                new CanvasGradientStop { Position = EaseOutQuad(0f), Color = topColor },
+                new CanvasGradientStop { Position = EaseOutQuad(1f), Color = bottomColor }
             };
+
 
             // Brush Creation
             using (var gradientBrush = new CanvasLinearGradientBrush(
@@ -167,9 +208,28 @@ namespace Pikouna_Engine.WeatherViewComponents
                 gradientBrush.StartPoint = new Vector2(0, 0);
                 gradientBrush.EndPoint = new Vector2(0, (float)sender.ActualHeight);
 
-                // 4. Fill the entire control
+                // Fill the entire control
                 var bounds = new Rect(0, 0, _workingWidth, _workingHeight);
                 args.DrawingSession.FillRectangle(bounds, gradientBrush);
+            }
+        }
+
+        private void StarCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
+        {
+            foreach (Star star in RenderedStars)
+            {
+                // Let the star generate a new opacity to animate
+                star.CreateNewOpacity();
+
+                // Define star color with dynamic alpha
+                var starColor = Windows.UI.Color.FromArgb(
+                    (byte)(255 * star.Opacity), // alpha channel
+                    Colors.LightGoldenrodYellow.R,
+                    Colors.LightGoldenrodYellow.G,
+                    Colors.LightGoldenrodYellow.B
+                );
+
+                args.DrawingSession.FillCircle(new Vector2((float)_workingWidth * star.Position.X, (float)_workingHeight * star.Position.Y), 2, starColor);
             }
         }
     }

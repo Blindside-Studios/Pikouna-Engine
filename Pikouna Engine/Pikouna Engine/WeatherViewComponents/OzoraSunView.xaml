@@ -11,6 +11,7 @@
 
     <Grid x:Name="SunGrid" SizeChanged="SunGrid_SizeChanged">
         <win2d:CanvasControl x:Name="SkyCanvas" Draw="SkyCanvas_Draw" />
+        <win2d:CanvasControl x:Name="StarCanvas" Draw="StarCanvas_Draw" Opacity="0"/>
         <win2d:CanvasControl x:Name="SunCanvas" Draw="SunCanvas_Draw" />
     </Grid>
 </Page>

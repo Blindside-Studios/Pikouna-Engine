@@ -3,9 +3,12 @@ using Microsoft.UI.Xaml;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,8 +16,6 @@ namespace Pikouna_Engine
 {
     public class Calculations
     {
-
-
         public static double GetNightModifier(double position, double _workingHeight)
         {
             if (position > (_workingHeight / 3) * 2)
@@ -31,6 +32,25 @@ namespace Pikouna_Engine
                 else return _nightTimeModifier;
             }
             else return 0;
+        }
+
+        public static List<Star> GenerateStarPositions(int amount)
+        {
+            Random rnd = new Random();
+            var list = new List<Star>();
+            for (int i = 0; i < amount; i++)
+            {
+                var vect = new Vector2((float)rnd.NextDouble(), (float)rnd.NextDouble());
+                double opacity = ((double)rnd.Next(50, 100)) / 100;
+                list.Add(new Star()
+                {
+                    Position = vect,
+                    Opacity = opacity,
+                    MaximumChangePerUpdate = rnd.NextDouble() * 0.2,
+                    MinimumOpacity = (rnd.NextDouble() / 2) + 0.2
+                });
+            }
+            return list;
         }
     }
 
@@ -93,6 +113,56 @@ namespace Pikouna_Engine
             return Windows.UI.Color.FromArgb(a, r, g, b);
         }
     }
+
+    public class Star
+    {
+        public Vector2 Position { get; set; }
+        public double Opacity { get => _opacity;
+            set
+            {
+                if (_opacity != value)
+                {
+                    // ensure the star stays within its extreme values
+                    // reverse the last stored delta to make the star's opacity "bounce back" on next call
+                    double difference = 0;
+                    if (value < MinimumOpacity)
+                    {
+                        double _newValue = MinimumOpacity;
+                        difference = _newValue - _opacity;
+                        value = _newValue;
+                    }
+                    else if (value > 1)
+                    {
+                        double _newValue = 1;
+                        difference = _newValue - _opacity;
+                        value = _newValue;
+                    }
+                    else difference = value - _opacity;
+                    
+                    // clmaping the diffrence to prevent stars from gaining an insane amount of change per update
+                    if (difference > MaximumChangePerUpdate) difference = MaximumChangePerUpdate;
+                    else if (difference < -MaximumChangePerUpdate) difference = -MaximumChangePerUpdate;
+                    _lastOpacityChange = difference;
+
+                    _opacity = value;
+                }
+            }
+        }
+        private double _opacity;
+
+        public double MaximumChangePerUpdate { get; set; }
+        public double MinimumOpacity { get; set; }
+
+        private double _lastOpacityChange = 0;
+
+        public void CreateNewOpacity()
+        {
+            Random rnd = new Random();
+            double _newOpacity = (double)rnd.Next(-10, 10) * MaximumChangePerUpdate * 0.1;
+            Opacity = Opacity + _lastOpacityChange + _newOpacity;
+        }
+    }
+
 
     /// <summary>
     /// CP STANDS FOR CONTROL POINT, NOT WHATEVER YOU MIGHT THINK!!!

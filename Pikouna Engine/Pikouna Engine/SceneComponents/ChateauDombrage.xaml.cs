@@ -1,4 +1,6 @@
+using Microsoft.Graphics.Canvas.Brushes;
 using Microsoft.Graphics.Canvas.Svg;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -8,12 +10,14 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.UI;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -68,7 +72,24 @@ namespace Pikouna_Engine.SceneComponents
                 float xOffset = (canvasWidth - svgWidth * scale) / 2;
                 float yOffset = canvasHeight - svgHeight * scale;
 
-                // Draw the SVG
+                CanvasGradientStop[] gradientStops =
+                {
+                    new CanvasGradientStop() { Position = 0.0f, Color = Color.FromArgb(255, 0, 33, 55) }, // top color
+                    new CanvasGradientStop() { Position = 1.0f, Color = Color.FromArgb(255, 0, 17, 28) }  // bottom color
+                };
+
+                using (var gradientBrush = new CanvasLinearGradientBrush(args.DrawingSession, gradientStops))
+                {
+                    gradientBrush.StartPoint = new Vector2(0, 0);
+                    gradientBrush.EndPoint = new Vector2(0, canvasHeight);
+
+                    float sideWidth = (canvasWidth - svgWidth * scale) / 2;
+
+                    // artificially extend the recatngles to prevent seams from forming
+                    args.DrawingSession.FillRectangle(-1, -1, sideWidth + 2, canvasHeight + 2, gradientBrush);
+                    args.DrawingSession.FillRectangle(canvasWidth - sideWidth - 1, -1, sideWidth + 2, canvasHeight + 2, gradientBrush);
+                }
+
                 args.DrawingSession.Transform = Matrix3x2.CreateScale(scale) * Matrix3x2.CreateTranslation(xOffset, yOffset);
                 args.DrawingSession.DrawSvg(_svgDocument, new Windows.Foundation.Size(_windowWidth, _windowHeight));
             }

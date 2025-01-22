@@ -10,6 +10,10 @@
     mc:Ignorable="d">
 
     <Grid>
-        <win2d:CanvasControl x:Name="ChateauCanvas" Draw="ChateauCanvas_Draw" CreateResources="ChateauCanvas_CreateResources" SizeChanged="ChateauCanvas_SizeChanged"/>
+        <win2d:CanvasControl x:Name="ChateauCanvas" Draw="ChateauCanvas_Draw" CreateResources="ChateauCanvas_CreateResources" SizeChanged="ChateauCanvas_SizeChanged" Opacity="0">
+            <win2d:CanvasControl.OpacityTransition>
+                <ScalarTransition/>
+            </win2d:CanvasControl.OpacityTransition>
+        </win2d:CanvasControl>
     </Grid>
 </Page>

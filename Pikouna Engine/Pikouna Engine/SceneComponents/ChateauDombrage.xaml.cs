@@ -147,7 +147,10 @@ namespace Pikouna_Engine.SceneComponents
             {
                 _svgDocument = await CanvasSvgDocument.LoadAsync(sender.Device, stream);
             }
+            
+            // refresh the canvas and animate it in to ensure a smooth entrance
             ChateauCanvas.Invalidate();
+            ChateauCanvas.Opacity = 1.0;
         }
     }
 }

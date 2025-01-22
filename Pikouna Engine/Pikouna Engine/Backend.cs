@@ -18,14 +18,14 @@ namespace Pikouna_Engine
     {
         public static double GetNightModifier(double position, double _workingHeight)
         {
-            if (position > (_workingHeight / 3) * 2)
+            if (position > (_workingHeight / 4) * 3)
             {
                 return 1;
             }
-            else if (position > (_workingHeight / 3))
+            else if (position > (_workingHeight / 4))
             {
                 // Calculate the relative distance from the top that the vector is in the middle third of the grid from 0 to 1.
-                double _nightTimeModifier = (position - (_workingHeight / 3)) / (_workingHeight / 3);
+                double _nightTimeModifier = (position - (_workingHeight / 4)) / (_workingHeight / 2);
                 // Clamp to avoid problematic situations
                 if (_nightTimeModifier < 0) return 0;
                 else if (_nightTimeModifier > 1) return 1;

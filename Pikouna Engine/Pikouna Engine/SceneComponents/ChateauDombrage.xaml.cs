@@ -1,4 +1,6 @@
+using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Brushes;
+using Microsoft.Graphics.Canvas.Effects;
 using Microsoft.Graphics.Canvas.Svg;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -73,10 +75,16 @@ namespace Pikouna_Engine.SceneComponents
                 float xOffset = (canvasWidth - svgWidth * scale) / 2;
                 float yOffset = canvasHeight - svgHeight * scale;
 
+                // calculate dynamic multipliers for the red and green channels
+                float nightTimeModifier = (float)OzoraViewModel.Instance.NightTimeModifier;
+                // red remains unchanged
+                float greenMultiplier = 1 - (float)Math.Sqrt(nightTimeModifier);
+                float blueMultiplier = 1 - (float)(nightTimeModifier * 0.75);
+
                 CanvasGradientStop[] gradientStops =
                 {
-                    new CanvasGradientStop() { Position = 0.0f, Color = Color.FromArgb(255, 0, 33, 55) }, // top color
-                    new CanvasGradientStop() { Position = 1.0f, Color = Color.FromArgb(255, 0, 17, 28) }  // bottom color
+                    new CanvasGradientStop() { Position = 0.0f, Color = Color.FromArgb(255, 0, (byte)(33 * greenMultiplier), (byte)(55 * blueMultiplier)) }, // top color
+                    new CanvasGradientStop() { Position = 1.0f, Color = Color.FromArgb(255, 0, (byte)(17 * greenMultiplier), (byte)(28 * blueMultiplier)) }  // bottom color
                 };
 
                 using (var gradientBrush = new CanvasLinearGradientBrush(args.DrawingSession, gradientStops))
@@ -91,8 +99,35 @@ namespace Pikouna_Engine.SceneComponents
                     args.DrawingSession.FillRectangle(canvasWidth - sideWidth - 1, -1, sideWidth + 2, canvasHeight + 2, gradientBrush);
                 }
 
-                args.DrawingSession.Transform = Matrix3x2.CreateScale(scale) * Matrix3x2.CreateTranslation(xOffset, yOffset);
-                args.DrawingSession.DrawSvg(_svgDocument, new Windows.Foundation.Size(_windowWidth, _windowHeight));
+                //args.DrawingSession.Transform = Matrix3x2.CreateScale(scale) * Matrix3x2.CreateTranslation(xOffset, yOffset);
+                //args.DrawingSession.DrawSvg(_svgDocument, new Windows.Foundation.Size(_windowWidth, _windowHeight));
+
+                using (var offscreen = new CanvasRenderTarget(sender, canvasWidth, canvasHeight))
+                {
+                    using (var ds = offscreen.CreateDrawingSession())
+                    {
+                        // Draw SVG and other elements normally
+                        ds.Transform = Matrix3x2.CreateScale(scale) * Matrix3x2.CreateTranslation(xOffset, yOffset);
+                        ds.DrawSvg(_svgDocument, new Windows.Foundation.Size(canvasWidth, canvasHeight));
+                    }
+
+                    // Apply a color matrix effect
+                    var colorMatrixEffect = new ColorMatrixEffect
+                    {
+                        Source = offscreen,
+                        ColorMatrix = new Matrix5x4
+                        {
+                            M11 = 1.0f, M12 = 0.0f, M13 = 0.0f, M14 = 0.0f, // Red multiplier
+                            M21 = 0.0f, M22 = greenMultiplier, M23 = 0.0f, M24 = 0.0f, // Green multiplier
+                            M31 = 0.0f, M32 = 0.0f, M33 = blueMultiplier, M34 = 0.0f, // Blue remains unchanged
+                            M41 = 0.0f, M42 = 0.0f, M43 = 0.0f, M44 = 1.0f, // Alpha remains unchanged
+                            M51 = 0.0f, M52 = 0.0f, M53 = 0.0f, M54 = 0.0f  // Offset values
+                        }
+                    };
+
+                    // Draw the effect onto the main canvas
+                    args.DrawingSession.DrawImage(colorMatrixEffect);
+                }
             }
         }
 

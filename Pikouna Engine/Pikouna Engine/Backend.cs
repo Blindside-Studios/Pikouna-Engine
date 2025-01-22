@@ -255,24 +255,24 @@ namespace Pikouna_Engine
         }
         private bool _mouseEngaged = true;
 
-        public ElementTheme ViewTheme
+        public double NightTimeModifier
         {
-            get => _viewTheme;
+            get => _nightTimeModifier;
             set
             {
-                if (value != _viewTheme)
+                if(value != _nightTimeModifier)
                 {
-                    _viewTheme = value;
-                    OnThemeChangeRequested(nameof(ViewTheme));
+                    _nightTimeModifier = value;
+                    OnNightTimeUpdateRequested(nameof(NightTimeModifier));
                 }
             }
         }
-        private ElementTheme _viewTheme = ElementTheme.Default;
+        private double _nightTimeModifier;
 
-        public event PropertyChangedEventHandler ThemeChangeRequested;
-        protected virtual void OnThemeChangeRequested(string propertyName)
+        public event PropertyChangedEventHandler NightTimeUpdate;
+        protected virtual void OnNightTimeUpdateRequested(string propertyName)
         {
-            ThemeChangeRequested?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            NightTimeUpdate?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

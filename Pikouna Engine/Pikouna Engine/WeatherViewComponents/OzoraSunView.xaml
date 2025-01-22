@@ -14,5 +14,6 @@
         <win2d:CanvasControl x:Name="BackgroundStarCanvas" Draw="BackgroundStars_Draw" Opacity="0" />
         <win2d:CanvasControl x:Name="StarCanvas" Draw="StarCanvas_Draw" Opacity="0"/>
         <win2d:CanvasControl x:Name="SunCanvas" Draw="SunCanvas_Draw" />
+        <Frame x:Name="ForegroundFrame" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
     </Grid>
 </Page>

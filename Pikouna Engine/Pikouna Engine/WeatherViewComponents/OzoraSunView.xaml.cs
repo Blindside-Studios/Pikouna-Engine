@@ -98,6 +98,7 @@ namespace Pikouna_Engine.WeatherViewComponents
                 }
                 
                 _nightTimeModifier = _newNightTimeModifier;
+                OzoraViewModel.Instance.NightTimeModifier = _nightTimeModifier;
                 SkyCanvas.Invalidate();
             }
 
@@ -160,6 +161,10 @@ namespace Pikouna_Engine.WeatherViewComponents
 
             Ozora.Physics.StartSimulation();
             Ozora.Physics.MouseCursorEngaged = true;
+
+            // Load the foreground
+            // TODO: Implement that it can load different scenes, but who cares rn?
+            ForegroundFrame.NavigateToType(typeof(SceneComponents.ChateauDombrage), null, null);
         }
 
         private void SunGrid_SizeChanged(object sender, SizeChangedEventArgs e)

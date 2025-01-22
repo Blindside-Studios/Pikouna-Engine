@@ -32,6 +32,7 @@ namespace Pikouna_Engine.SceneComponents
         private CanvasSvgDocument _svgDocument;
         private float _windowWidth = 100f;
         private float _windowHeight = 100f;
+        private const float MinSvgWidth = 1000f;
 
         public ChateauDombrage()
         {
@@ -63,7 +64,7 @@ namespace Pikouna_Engine.SceneComponents
                 float svgWidth = 3840f;
                 float svgHeight = 2160f;
 
-                float scale = canvasWidth / svgWidth;
+                float scale = Math.Max(canvasWidth / svgWidth, MinSvgWidth / svgWidth);
                 if (svgHeight * scale > canvasHeight)
                 {
                     scale = canvasHeight / svgHeight;

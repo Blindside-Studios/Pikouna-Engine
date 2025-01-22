@@ -183,8 +183,15 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void SunCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
         {
+            var sunColor = Windows.UI.Color.FromArgb(
+                    255, // alpha channel
+                    Colors.LightGoldenrodYellow.R,
+                    (byte)(0.9 * Colors.LightGoldenrodYellow.G * (1 - _nightTimeModifier * 0.75)),
+                    (byte)(0.75 * Colors.LightGoldenrodYellow.B * (1 - _nightTimeModifier))
+                );
+
             // Sun object
-            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), _SunRadius, Colors.Yellow);
+            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), _SunRadius, sunColor);
         }
 
         private void SkyCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)

@@ -9,8 +9,8 @@
 
   <Identity
     Name="140c27c0-aa84-4d8e-9380-4a5918009d33"
-    Publisher="CN=nicol"
-    Version="1.0.0.0" />
+    Publisher="CN=Blindside Studios"
+    Version="0.1.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="140c27c0-aa84-4d8e-9380-4a5918009d33" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

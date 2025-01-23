@@ -56,6 +56,8 @@ namespace Pikouna_Engine.SceneComponents
             ChateauCanvas.Invalidate();
         }
 
+        private CanvasRenderTarget _offscreenTarget;
+
         private void ChateauCanvas_Draw(Microsoft.Graphics.Canvas.UI.Xaml.CanvasControl sender, Microsoft.Graphics.Canvas.UI.Xaml.CanvasDrawEventArgs args)
         {
             if (_svgDocument != null)
@@ -102,32 +104,35 @@ namespace Pikouna_Engine.SceneComponents
                 //args.DrawingSession.Transform = Matrix3x2.CreateScale(scale) * Matrix3x2.CreateTranslation(xOffset, yOffset);
                 //args.DrawingSession.DrawSvg(_svgDocument, new Windows.Foundation.Size(_windowWidth, _windowHeight));
 
-                using (var offscreen = new CanvasRenderTarget(sender, canvasWidth, canvasHeight))
+                if (_offscreenTarget == null || _offscreenTarget.Size.Width != _windowWidth || _offscreenTarget.Size.Height != _windowHeight)
                 {
-                    using (var ds = offscreen.CreateDrawingSession())
-                    {
-                        // Draw SVG and other elements normally
-                        ds.Transform = Matrix3x2.CreateScale(scale) * Matrix3x2.CreateTranslation(xOffset, yOffset);
-                        ds.DrawSvg(_svgDocument, new Windows.Foundation.Size(canvasWidth, canvasHeight));
-                    }
-
-                    // Apply a color matrix effect
-                    var colorMatrixEffect = new ColorMatrixEffect
-                    {
-                        Source = offscreen,
-                        ColorMatrix = new Matrix5x4
-                        {
-                            M11 = 1.0f, M12 = 0.0f, M13 = 0.0f, M14 = 0.0f, // Red multiplier
-                            M21 = 0.0f, M22 = greenMultiplier, M23 = 0.0f, M24 = 0.0f, // Green multiplier
-                            M31 = 0.0f, M32 = 0.0f, M33 = blueMultiplier, M34 = 0.0f, // Blue remains unchanged
-                            M41 = 0.0f, M42 = 0.0f, M43 = 0.0f, M44 = 1.0f, // Alpha remains unchanged
-                            M51 = 0.0f, M52 = 0.0f, M53 = 0.0f, M54 = 0.0f  // Offset values
-                        }
-                    };
-
-                    // Draw the effect onto the main canvas
-                    args.DrawingSession.DrawImage(colorMatrixEffect);
+                    _offscreenTarget?.Dispose();
+                    _offscreenTarget = new CanvasRenderTarget(sender, _windowWidth, _windowHeight);
                 }
+
+                using (var ds = _offscreenTarget.CreateDrawingSession())
+                {
+                    // Draw SVG and other elements normally
+                    ds.Transform = Matrix3x2.CreateScale(scale) * Matrix3x2.CreateTranslation(xOffset, yOffset);
+                    ds.DrawSvg(_svgDocument, new Windows.Foundation.Size(canvasWidth, canvasHeight));
+                }
+
+                // Apply a color matrix effect
+                var colorMatrixEffect = new ColorMatrixEffect
+                {
+                    Source = _offscreenTarget,
+                    ColorMatrix = new Matrix5x4
+                    {
+                        M11 = 1.0f, M12 = 0.0f, M13 = 0.0f, M14 = 0.0f, // Red multiplier
+                        M21 = 0.0f, M22 = greenMultiplier, M23 = 0.0f, M24 = 0.0f, // Green multiplier
+                        M31 = 0.0f, M32 = 0.0f, M33 = blueMultiplier, M34 = 0.0f, // Blue remains unchanged
+                        M41 = 0.0f, M42 = 0.0f, M43 = 0.0f, M44 = 1.0f, // Alpha remains unchanged
+                        M51 = 0.0f, M52 = 0.0f, M53 = 0.0f, M54 = 0.0f  // Offset values
+                    }
+                };
+
+                // Draw the effect onto the main canvas
+                args.DrawingSession.DrawImage(colorMatrixEffect);
             }
         }
 
@@ -147,7 +152,7 @@ namespace Pikouna_Engine.SceneComponents
             {
                 _svgDocument = await CanvasSvgDocument.LoadAsync(sender.Device, stream);
             }
-            
+
             // refresh the canvas and animate it in to ensure a smooth entrance
             ChateauCanvas.Invalidate();
             ChateauCanvas.Opacity = 1.0;

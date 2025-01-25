@@ -190,6 +190,13 @@ namespace Pikouna_Engine.WeatherViewComponents
                     (byte)(0.75 * Colors.LightGoldenrodYellow.B * (1 - _nightTimeModifier))
                 );
 
+            // Sun background half transparent objects
+            sunColor.A = 255 / 5;
+            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), (float)(_SunRadius * 2.5 * (1- Math.Pow(_nightTimeModifier, 2))), sunColor);
+            sunColor.A = 255 / 4;
+            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), (float)(_SunRadius * 1.75 * (1 - Math.Pow(_nightTimeModifier, 2))), sunColor);
+            sunColor.A = 255;
+
             // Sun object
             args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), _SunRadius, sunColor);
         }

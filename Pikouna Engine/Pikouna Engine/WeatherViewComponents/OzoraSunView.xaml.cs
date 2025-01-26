@@ -191,10 +191,12 @@ namespace Pikouna_Engine.WeatherViewComponents
                 );
 
             // Sun background half transparent objects
+            sunColor.A = 255 / 7;
+            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), (float)(_SunRadius + 86 * Math.Clamp(1 - Math.Pow(_nightTimeModifier * 1.3, 2), 0, 1)), sunColor);
+            sunColor.A = 255 / 6;
+            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), (float)(_SunRadius + 64 * Math.Clamp(1- Math.Pow(_nightTimeModifier * 1.3, 2), 0, 1)), sunColor);
             sunColor.A = 255 / 5;
-            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), (float)(_SunRadius * 2.5 * (1- Math.Pow(_nightTimeModifier, 2))), sunColor);
-            sunColor.A = 255 / 4;
-            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), (float)(_SunRadius * 1.75 * (1 - Math.Pow(_nightTimeModifier, 2))), sunColor);
+            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), (float)(_SunRadius + 34 * Math.Clamp(1 - Math.Pow(_nightTimeModifier * 1.3, 2), 0, 1)), sunColor);
             sunColor.A = 255;
 
             // Sun object

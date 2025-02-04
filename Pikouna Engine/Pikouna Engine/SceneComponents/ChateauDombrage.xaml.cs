@@ -96,9 +96,12 @@ namespace Pikouna_Engine.SceneComponents
 
                     float sideWidth = (canvasWidth - svgWidth * scale) / 2;
 
-                    // artificially extend the recatngles to prevent seams from forming
-                    args.DrawingSession.FillRectangle(-1, -1, sideWidth + 2, canvasHeight + 2, gradientBrush);
-                    args.DrawingSession.FillRectangle(canvasWidth - sideWidth - 1, -1, sideWidth + 2, canvasHeight + 2, gradientBrush);
+                    // artificially extend the rectangles to prevent seams from forming
+                    if (sideWidth > 0)
+                    {
+                        args.DrawingSession.FillRectangle(-1, -1, sideWidth + 2, canvasHeight + 2, gradientBrush);
+                        args.DrawingSession.FillRectangle(canvasWidth - sideWidth - 1, -1, sideWidth + 2, canvasHeight + 2, gradientBrush);
+                    }
                 }
 
                 //args.DrawingSession.Transform = Matrix3x2.CreateScale(scale) * Matrix3x2.CreateTranslation(xOffset, yOffset);

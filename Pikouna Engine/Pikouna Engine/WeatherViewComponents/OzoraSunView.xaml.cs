@@ -26,6 +26,7 @@ using Microsoft.Graphics.Canvas.Geometry;
 using Microsoft.UI.Xaml.Shapes;
 using System.Globalization;
 using Microsoft.UI.Dispatching;
+using Windows.UI.ViewManagement;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -37,6 +38,8 @@ namespace Pikouna_Engine.WeatherViewComponents
     /// </summary>
     public sealed partial class OzoraSunView : Page
     {
+        private UISettings uiSettings = new();
+
         private int _SunDimensions = 100;
         private int _SunRadius = 50;
         private int _starFramerate = 12;
@@ -108,7 +111,7 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void MouseViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (Ozora != null)
+            if (Ozora != null && uiSettings.AnimationsEnabled)
             {
                 Ozora.Physics.Interface.PointerLocation = OzoraViewModel.Instance.MousePosition;
                 Ozora.Physics.MouseCursorEngaged = OzoraViewModel.Instance.MouseEngaged;
@@ -157,14 +160,21 @@ namespace Pikouna_Engine.WeatherViewComponents
             AnimatedStars = Calculations.GenerateStarPositions(Convert.ToInt32(_workingHeight * _workingWidth / 2000 * 0.5), true);
 
             twinklingTimer.Interval = TimeSpan.FromMilliseconds(1000/_starFramerate); // Adjust interval as needed
-            twinklingTimer.Tick += (s, e) => StarCanvas.Invalidate();
+            twinklingTimer.Tick += (s, e) => { if (uiSettings.AnimationsEnabled) StarCanvas.Invalidate(); };
 
             Ozora.Physics.StartSimulation();
             Ozora.Physics.MouseCursorEngaged = true;
 
+            uiSettings.AnimationsEnabledChanged += UiSettings_AnimationsEnabledChanged;
+
             // Load the foreground
             // TODO: Implement that it can load different scenes, but who cares rn?
             ForegroundFrame.NavigateToType(typeof(SceneComponents.ChateauDombrage), null, null);
+        }
+
+        private void UiSettings_AnimationsEnabledChanged(UISettings sender, UISettingsAnimationsEnabledChangedEventArgs args)
+        {
+            SunCanvas.Invalidate();
         }
 
         private void SunGrid_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -183,24 +193,27 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void SunCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)
         {
-            var sunColor = Windows.UI.Color.FromArgb(
-                    255, // alpha channel
-                    Colors.LightGoldenrodYellow.R,
-                    (byte)(0.9 * Colors.LightGoldenrodYellow.G * (1 - _nightTimeModifier * 0.75)),
-                    (byte)(0.75 * Colors.LightGoldenrodYellow.B * (1 - _nightTimeModifier))
-                );
+            if (uiSettings.AnimationsEnabled)
+            {
+                var sunColor = Windows.UI.Color.FromArgb(
+                        255, // alpha channel
+                        Colors.LightGoldenrodYellow.R,
+                        (byte)(0.9 * Colors.LightGoldenrodYellow.G * (1 - _nightTimeModifier * 0.75)),
+                        (byte)(0.75 * Colors.LightGoldenrodYellow.B * (1 - _nightTimeModifier))
+                    );
 
-            // Sun background half transparent objects
-            sunColor.A = 255 / 7;
-            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), (float)(_SunRadius + 86 * Math.Clamp(1 - Math.Pow(_nightTimeModifier * 1.3, 2), 0, 1)), sunColor);
-            sunColor.A = 255 / 6;
-            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), (float)(_SunRadius + 64 * Math.Clamp(1- Math.Pow(_nightTimeModifier * 1.3, 2), 0, 1)), sunColor);
-            sunColor.A = 255 / 5;
-            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), (float)(_SunRadius + 34 * Math.Clamp(1 - Math.Pow(_nightTimeModifier * 1.3, 2), 0, 1)), sunColor);
-            sunColor.A = 255;
+                // Sun background half transparent objects
+                sunColor.A = 255 / 7;
+                args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), (float)(_SunRadius + 86 * Math.Clamp(1 - Math.Pow(_nightTimeModifier * 1.3, 2), 0, 1)), sunColor);
+                sunColor.A = 255 / 6;
+                args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), (float)(_SunRadius + 64 * Math.Clamp(1 - Math.Pow(_nightTimeModifier * 1.3, 2), 0, 1)), sunColor);
+                sunColor.A = 255 / 5;
+                args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), (float)(_SunRadius + 34 * Math.Clamp(1 - Math.Pow(_nightTimeModifier * 1.3, 2), 0, 1)), sunColor);
+                sunColor.A = 255;
 
-            // Sun object
-            args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), _SunRadius, sunColor);
+                // Sun object
+                args.DrawingSession.FillCircle(new Vector2(_sunPosition.X + _SunRadius, _sunPosition.Y + _SunRadius), _SunRadius, sunColor);
+            }
         }
 
         private void SkyCanvas_Draw(CanvasControl sender, CanvasDrawEventArgs args)

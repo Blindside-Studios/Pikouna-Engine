@@ -116,6 +116,7 @@ namespace Pikouna_Engine.SceneComponents
                 using (var ds = _offscreenTarget.CreateDrawingSession())
                 {
                     // Draw SVG and other elements normally
+                    ds.Clear(Colors.Transparent);
                     ds.Transform = Matrix3x2.CreateScale(scale) * Matrix3x2.CreateTranslation(xOffset, yOffset);
                     ds.DrawSvg(_svgDocument, new Windows.Foundation.Size(canvasWidth, canvasHeight));
                 }

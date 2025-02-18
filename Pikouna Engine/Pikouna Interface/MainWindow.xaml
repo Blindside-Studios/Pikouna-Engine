@@ -11,12 +11,18 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0"/> <!-- This was once 300, but I disabled because no settings yet -->
+            <ColumnDefinition Width="200"/> <!-- This was once 300, but I disabled because no settings yet -->
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <StackPanel Background="Black" Grid.Column="0">
-            
+            <TextBlock Text="Pikouna Engine" FontSize="25"/>
+            <TextBlock Text="Testing Environment" FontFamily="14"/>
+            <ComboBox x:Name="WeatherComboBox"
+                ItemsSource="{Binding WeatherValues}"
+                SelectedItem="{Binding WeatherType, Mode=TwoWay}">
+            </ComboBox>
         </StackPanel>
+        
         <Grid x:Name="EverythingGrid" PointerEntered="EverythingGrid_PointerEntered" PointerExited="EverythingGrid_PointerExited" PointerMoved="EverythingGrid_PointerMoved" Grid.Column="1">
             <Rectangle Fill="Gray" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
             <Frame x:Name="ContentFrame"/>

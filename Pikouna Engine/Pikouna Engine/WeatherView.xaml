@@ -10,5 +10,6 @@
 
     <Grid>
         <Frame x:Name="ContentView"/>
+        <Frame x:Name="SceneFrame" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
     </Grid>
 </Page>

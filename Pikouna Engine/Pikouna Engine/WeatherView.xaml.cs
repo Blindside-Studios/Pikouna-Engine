@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -27,6 +28,15 @@ namespace Pikouna_Engine
         {
             this.InitializeComponent();
             ContentView.NavigateToType(typeof(WeatherViewComponents.OzoraSunView), null, null);
+            // Load the foreground
+            // TODO: Implement that it can load different scenes, but who cares rn?
+            SceneFrame.NavigateToType(typeof(SceneComponents.ChateauDombrage), null, null);
+            WeatherViewModel.Instance.PropertyChanged += RequestedWeatherChanged;
+        }
+
+        private void RequestedWeatherChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            Debug.WriteLine($"Requested weather: {WeatherViewModel.Instance.WeatherType.ToString()}");
         }
     }
 }

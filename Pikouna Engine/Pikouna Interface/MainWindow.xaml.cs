@@ -14,6 +14,7 @@ using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Pikouna_Engine;
 using System.Diagnostics;
+using System.Collections.ObjectModel;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -28,6 +29,8 @@ namespace Pikouna_Interface
         public MainWindow()
         {
             this.InitializeComponent();
+            WeatherViewModel.Instance.WeatherValues = new ObservableCollection<WeatherType>(Enum.GetValues(typeof(WeatherType)) as WeatherType[]);
+            WeatherComboBox.DataContext = Pikouna_Engine.WeatherViewModel.Instance;
             ContentFrame.NavigateToType(typeof(Pikouna_Engine.WeatherView), null, null);
         }
 

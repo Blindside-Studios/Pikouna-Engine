@@ -2,6 +2,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.Design;
@@ -280,5 +281,76 @@ namespace Pikouna_Engine
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+    }
+
+    public class WeatherViewModel : INotifyPropertyChanged
+    {
+        private static WeatherViewModel _instance;
+        public static WeatherViewModel Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new WeatherViewModel();
+                }
+                return _instance;
+            }
+        }
+
+        public WeatherType WeatherType
+        {
+            get => _weatherType;
+            set
+            {
+                if (value != _weatherType)
+                {
+                    _weatherType = value;
+                    OnPropertyChanged(nameof(WeatherType));
+                }
+            }
+        }
+        private WeatherType _weatherType = WeatherType.ClearSky;
+
+        // used for the Xaml binding
+        public ObservableCollection<WeatherType> WeatherValues { get; set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public enum WeatherType
+    {
+        ClearSky,
+        MainlyClear,
+        PartlyCloudy,
+        Overcast,
+        Fog,
+        DepositingRimeFog,
+        DrizzleLight,
+        DrizzleModerate,
+        DrizzleDense,
+        FreezingDrizzleLight,
+        FreezingDrizzleDense,
+        RainSlight,
+        RainModerate,
+        RainHeavy,
+        FreezingRainLight,
+        FreezingRainHeavy,
+        SnowFallSlight,
+        SnowFallModerate,
+        SnowFallHeavy,
+        SnowGrains,
+        RainShowersSlight,
+        RainShowersModerate,
+        RainShowersViolent,
+        SnowShowersSlight,
+        SnowShowersHeavy,
+        ThunderstormSlightOrModerate,
+        ThunderstormWithHailSlight,
+        ThunderstormWithHailHeavy
     }
 }

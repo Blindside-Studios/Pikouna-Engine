@@ -166,10 +166,6 @@ namespace Pikouna_Engine.WeatherViewComponents
             Ozora.Physics.MouseCursorEngaged = true;
 
             uiSettings.AnimationsEnabledChanged += UiSettings_AnimationsEnabledChanged;
-
-            // Load the foreground
-            // TODO: Implement that it can load different scenes, but who cares rn?
-            ForegroundFrame.NavigateToType(typeof(SceneComponents.ChateauDombrage), null, null);
         }
 
         private void UiSettings_AnimationsEnabledChanged(UISettings sender, UISettingsAnimationsEnabledChangedEventArgs args)

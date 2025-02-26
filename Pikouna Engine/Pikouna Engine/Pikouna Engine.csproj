@@ -16,6 +16,7 @@
   <ItemGroup>
     <None Remove="SceneComponents\ChateauDombrage.xaml" />
     <None Remove="WeatherView.xaml" />
+    <None Remove="WeatherViewComponents\CloudsView.xaml" />
     <None Remove="WeatherViewComponents\OzoraSunView.xaml" />
   </ItemGroup>
   <ItemGroup>
@@ -31,6 +32,9 @@
     <None Update="SceneComponents\ChateauDombrage.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Page Update="WeatherViewComponents\CloudsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="WeatherView.xaml">

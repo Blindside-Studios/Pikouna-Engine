@@ -92,14 +92,15 @@ namespace Pikouna_Engine.WeatherViewComponents
                 }
                 else
                 {
-                    dispatcherQueue.TryEnqueue(() => {
+                    dispatcherQueue.TryEnqueue(() =>
+                    {
                         if (twinklingTimer.IsEnabled) twinklingTimer.Stop();
                         _starOpacityModifier = 0;
                         StarCanvas.Opacity = 0;
                         BackgroundStarCanvas.Opacity = 0;
                     });
                 }
-                
+
                 _nightTimeModifier = _newNightTimeModifier;
                 OzoraViewModel.Instance.NightTimeModifier = _nightTimeModifier;
                 SkyCanvas.Invalidate();

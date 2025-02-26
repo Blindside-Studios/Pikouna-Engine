@@ -312,6 +312,20 @@ namespace Pikouna_Engine
         }
         private WeatherType _weatherType = WeatherType.ClearSky;
 
+        public double CloudCover
+        {
+            get => _cloudCover;
+            set
+            {
+                if (value != _cloudCover)
+                {
+                    _cloudCover = value;
+                    OnPropertyChanged(nameof(CloudCover));
+                }
+            }
+        }
+        private double _cloudCover = 0;
+
         // used for the Xaml binding
         public ObservableCollection<WeatherType> WeatherValues { get; set; }
 

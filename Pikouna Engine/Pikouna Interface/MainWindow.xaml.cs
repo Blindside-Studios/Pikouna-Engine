@@ -30,7 +30,7 @@ namespace Pikouna_Interface
         {
             this.InitializeComponent();
             WeatherViewModel.Instance.WeatherValues = new ObservableCollection<WeatherType>(Enum.GetValues(typeof(WeatherType)) as WeatherType[]);
-            WeatherComboBox.DataContext = Pikouna_Engine.WeatherViewModel.Instance;
+            ControlPanel.DataContext = Pikouna_Engine.WeatherViewModel.Instance;
             ContentFrame.NavigateToType(typeof(Pikouna_Engine.WeatherView), null, null);
         }
 

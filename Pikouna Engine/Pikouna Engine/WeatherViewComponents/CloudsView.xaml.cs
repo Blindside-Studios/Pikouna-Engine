@@ -17,28 +17,27 @@ using Windows.Foundation.Collections;
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-namespace Pikouna_Engine
+namespace Pikouna_Engine.WeatherViewComponents
 {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class WeatherView : Page
+    public sealed partial class CloudsView : Page
     {
-        public WeatherView()
+        public CloudsView()
         {
             this.InitializeComponent();
-            SunView.NavigateToType(typeof(WeatherViewComponents.OzoraSunView), null, null);
-            CloudsView.NavigateToType(typeof(WeatherViewComponents.CloudsView), null, null);
-
-            // Load the foreground
-            // TODO: Implement that it can load different scenes, but who cares rn?
-            SceneFrame.NavigateToType(typeof(SceneComponents.ChateauDombrage), null, null);
-            WeatherViewModel.Instance.PropertyChanged += RequestedWeatherChanged;
+            WeatherViewModel.Instance.PropertyChanged += Instance_PropertyChanged;
         }
 
-        private void RequestedWeatherChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void Instance_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            // potentially handle weather changed here later
+            // add logic to handle updated cloud cover here
+        }
+
+        private void CloudsCanvas_Draw(Microsoft.Graphics.Canvas.UI.Xaml.CanvasControl sender, Microsoft.Graphics.Canvas.UI.Xaml.CanvasDrawEventArgs args)
+        {
+
         }
     }
 }

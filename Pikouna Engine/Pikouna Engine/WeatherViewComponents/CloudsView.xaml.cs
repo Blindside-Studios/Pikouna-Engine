@@ -60,13 +60,13 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void AnimationTimer_Tick(object sender, object e)
         {
-            var maxTranslation = 1 + (maxCloudWidth/CloudsCanvas.ActualWidth);
+            var areaWidth = CloudsCanvas.ActualWidth;
             foreach (var cloud in Clouds)
             {
                 cloud.Translation += new Vector2((float)cloud.MovementSpeed, 0);
-                if (cloud.Translation.X > maxTranslation)
+                if (cloud.Translation.X > 1 + cloud.Radius/areaWidth)
                 {
-                    cloud.Translation = new Vector2((float)-(maxTranslation - 1), cloud.Translation.Y);
+                    cloud.Translation = new Vector2((float)-(cloud.Radius/areaWidth), cloud.Translation.Y);
                 }
             }
 
@@ -166,7 +166,7 @@ namespace Pikouna_Engine.WeatherViewComponents
             var cloud = new CloudMainEntity
             {
                 Translation = new Vector2((float)rnd.NextDouble(), (float)rnd.NextDouble()),
-                MovementSpeed = rnd.NextDouble()/1000
+                MovementSpeed = rnd.NextDouble()/2000 + 0.00005
             };
             cloud.ManageProperties(AreaSize);
             return cloud;
@@ -201,7 +201,8 @@ namespace Pikouna_Engine.WeatherViewComponents
         public List<CloudRenderObject> getObjectsToRender(float CanvasWidth, float CanvasHeight)
         {
             var list = new List<CloudRenderObject>();
-            var translation = new Vector2(this.Translation.X * CanvasWidth, this.Translation.Y * CanvasHeight);
+            // this ensures the cloud is properly drawn evenly and can spawn outside of the screen to prevent "bunching up" inside of the screen area, causing blank spaces in the scroll animation
+            var translation = new Vector2((float)(this.Translation.X * (CanvasWidth + 2*CloudsView.maxCloudWidth) - CloudsView.maxCloudWidth), this.Translation.Y * CanvasHeight);
             list.Add(new CloudRenderObject()
             {
                 Radius = this.Radius,

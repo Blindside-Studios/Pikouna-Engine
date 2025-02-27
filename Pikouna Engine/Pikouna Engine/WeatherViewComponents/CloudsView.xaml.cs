@@ -27,9 +27,10 @@ namespace Pikouna_Engine.WeatherViewComponents
         List<CloudMainEntity> Clouds = new List<CloudMainEntity> { };
         List<CloudRenderObject> renderedClouds = new();
         public static double maxCloudWidth = 0;
+        public static double motionModifier = 1;
+        private int numberOfClouds = 15;
         private Point areaSize = new Point(0, 0);
         private DispatcherTimer _timer;
-        private double motionModifier = 1;
 
         public CloudsView()
         {
@@ -41,11 +42,10 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void CloudsView_Loaded(object sender, RoutedEventArgs e)
         {
-            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 500000));
-            WeatherViewModel.Instance.CloudCover = 50;
-            for (int i = 0; i < 15; i++)
+            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 1000000) + 20);
+            for (int i = 0; i < numberOfClouds; i++)
             {
-                Clouds.Add(CloudMainEntity.RequestNewCloud(CloudsCanvas.ActualHeight * CloudsCanvas.ActualWidth));
+                Clouds.Add(CloudMainEntity.RequestNewCloud(CloudsCanvas.ActualHeight * CloudsCanvas.ActualWidth, (float)i / numberOfClouds));
             }
             renderedClouds = GetRenderingTargets();
 
@@ -80,20 +80,17 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void Instance_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 500000));
+            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 1000000) + 20);
 
             if (WeatherViewModel.Instance.CloudCover != 0 && Clouds.Count == 0)
             {
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < numberOfClouds; i++)
                 {
-                    Clouds.Add(CloudMainEntity.RequestNewCloud(CloudsCanvas.ActualHeight * CloudsCanvas.ActualWidth));
+                    Clouds.Add(CloudMainEntity.RequestNewCloud(CloudsCanvas.ActualHeight * CloudsCanvas.ActualWidth, (float)i/numberOfClouds));
                 }
             }
             else if (WeatherViewModel.Instance.CloudCover == 0 && Clouds.Count != 0) Clouds.Clear();
             else if (Clouds.Count() > 0) foreach (var cloud in Clouds) cloud.ManageProperties(CloudsCanvas.ActualHeight * CloudsCanvas.ActualWidth);
-
-            if (WeatherViewModel.Instance.CloudCover == 100) CloudsCanvas.ClearColor = Colors.White;
-            else CloudsCanvas.ClearColor = Colors.Transparent;
 
             renderedClouds = GetRenderingTargets();
 
@@ -103,7 +100,6 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void CloudsCanvas_Draw(Microsoft.Graphics.Canvas.UI.Xaml.CanvasControl sender, Microsoft.Graphics.Canvas.UI.Xaml.CanvasDrawEventArgs args)
         {
             var ds = args.DrawingSession;
-            //ds.Clear(Colors.SkyBlue);
 
             if (Clouds.Count() > 0)
             {
@@ -116,8 +112,19 @@ namespace Pikouna_Engine.WeatherViewComponents
                 float greenMultiplier = 1 - (float)Math.Clamp(Math.Sqrt(nightTimeModifier * 1.25), 0, 1);
                 float blueMultiplier = 1 - (float)Math.Clamp((2 * nightTimeModifier * (Math.Pow(nightTimeModifier - 0.6, 5) * 6.43 + 0.5)) * 1.025, 0, 1);
 
+                color.R = (byte)(color.R * redMultiplier);
+                color.G = (byte)(color.G * greenMultiplier);
+                color.B = (byte)(color.B * blueMultiplier);
+
                 // make sure the background color is correct
-                if (CloudsCanvas.ClearColor != Colors.Transparent) CloudsCanvas.ClearColor = color;
+                var fullCloudThreshold = 70;
+                if (WeatherViewModel.Instance.CloudCover >= fullCloudThreshold)
+                {
+                    var backgroundColor = color;
+                    backgroundColor.A = (byte)(25.5 * (WeatherViewModel.Instance.CloudCover - fullCloudThreshold) / ((100 - fullCloudThreshold) / 10));
+                    CloudsCanvas.ClearColor = backgroundColor;
+                }
+                else CloudsCanvas.ClearColor = Colors.Transparent;
                 
                 foreach (var obj in renderedClouds)
                 {
@@ -126,13 +133,9 @@ namespace Pikouna_Engine.WeatherViewComponents
                         obj.Translation.X < areaSize.X + obj.Radius && 
                         obj.Translation.Y < areaSize.Y + obj.Radius)
                     {
-                        var finalColor = Colors.White;
-                        finalColor.R = finalColor.G = (byte)(255 - (5 * obj.RenderHierarchy + nightTimeModifier / 10));
-
-                        finalColor.R = (byte)(finalColor.R * redMultiplier);
-                        finalColor.G = (byte)(finalColor.G * greenMultiplier);
-                        finalColor.B = (byte)(finalColor.B * blueMultiplier);
-
+                        var finalColor = color;
+                        finalColor.R = (byte)Math.Clamp(finalColor.R - (5 * obj.RenderHierarchy + nightTimeModifier / 10), 0, 255);
+                        finalColor.G = (byte)Math.Clamp(finalColor.G - (5 * obj.RenderHierarchy + nightTimeModifier / 10), 0, 255);
 
                         ds.FillCircle(obj.Translation, (float)obj.Radius, finalColor);
                     }
@@ -143,7 +146,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void CloudsCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             areaSize = new Point(CloudsCanvas.ActualWidth, CloudsCanvas.ActualHeight);
-            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 500000));
+            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 1000000) + 20);
             if (Clouds.Count() > 0)
             {
                 foreach (var cloud in Clouds) cloud.ManageProperties(CloudsCanvas.ActualHeight * CloudsCanvas.ActualWidth);
@@ -162,7 +165,7 @@ namespace Pikouna_Engine.WeatherViewComponents
             var renderTargets = new List<CloudRenderObject>();
             foreach (var cloud in Clouds) { 
                 var newClouds = cloud.getObjectsToRender((float)CloudsCanvas.ActualWidth, (float)CloudsCanvas.ActualHeight); 
-                renderTargets.AddRange(newClouds); 
+                renderTargets.AddRange(newClouds);
             }
             return renderTargets;
         }
@@ -170,12 +173,12 @@ namespace Pikouna_Engine.WeatherViewComponents
 
     class CloudMainEntity
     {
-        public static CloudMainEntity RequestNewCloud(double AreaSize)
+        public static CloudMainEntity RequestNewCloud(double AreaSize, float yOffset)
         {
             Random rnd = new Random();
             var cloud = new CloudMainEntity
             {
-                Translation = new Vector2((float)rnd.NextDouble(), (float)rnd.NextDouble()),
+                Translation = new Vector2((float)rnd.NextDouble(), yOffset),
                 MovementSpeed = rnd.NextDouble()/3000 + 0.0001
             };
             cloud.ManageProperties(AreaSize);
@@ -187,7 +190,7 @@ namespace Pikouna_Engine.WeatherViewComponents
             var cloudCover = WeatherViewModel.Instance.CloudCover;
             var attachments = Convert.ToInt32(Math.Round(cloudCover / 20)) + 2;
 
-            if (cloudCover > 0) this.Radius = cloudCover * (AreaSize / 500000);
+            if (cloudCover > 0) this.Radius = cloudCover * (AreaSize / 1000000) + 20;
             else this.Radius = 0;
 
             if (AttachedClouds == null) AttachedClouds = new List<CloudAttachmentBlob>();
@@ -229,7 +232,10 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         public void animateChildren()
         {
-
+            foreach (var cloud in AttachedClouds)
+            {
+                cloud.animateAngles();
+            }
         }
 
         public double Radius { get; set; }
@@ -249,7 +255,7 @@ namespace Pikouna_Engine.WeatherViewComponents
                 HierarchyDepth = hierarchyDepth,
                 ParentRadius = parentRadius,
                 AttachmentAngle = rnd.NextDouble() * 2 * Math.PI,
-                AngularMovementSpeed = 0,
+                AngularMovementSpeed = (rnd.NextDouble() - 0.5) / 200,
                 AttachedClouds = new List<CloudAttachmentBlob>() { },
                 ChildGenerationVariance = rnd.NextDouble() + 0.5
             };
@@ -263,7 +269,7 @@ namespace Pikouna_Engine.WeatherViewComponents
             this.Radius = this.ParentRadius * 0.66;
             if (HierarchyDepth < (cloudCover / 25))
             {
-                var attachments = Convert.ToInt32(Math.Round(cloudCover / 33 * this.ChildGenerationVariance));
+                var attachments = Convert.ToInt32(Math.Round(cloudCover / 25 * this.ChildGenerationVariance * 1/this.HierarchyDepth));
                 if (AttachedClouds == null) AttachedClouds = new List<CloudAttachmentBlob>();
                 while (AttachedClouds.Count() > attachments) AttachedClouds.RemoveAt(0);
                 if (AttachedClouds.Count() < attachments)
@@ -299,6 +305,15 @@ namespace Pikouna_Engine.WeatherViewComponents
                 list.AddRange(cloud.contributeRenderAssets(translation));
             }
             return list;
+        }
+
+        public void animateAngles()
+        {
+            this.AttachmentAngle += this.AngularMovementSpeed * CloudsView.motionModifier;
+            foreach (var cloud in AttachedClouds)
+            {
+                cloud.animateAngles();
+            }
         }
 
         public int HierarchyDepth { get; set; }

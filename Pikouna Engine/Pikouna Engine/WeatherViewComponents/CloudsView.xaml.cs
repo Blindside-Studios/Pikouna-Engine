@@ -76,7 +76,6 @@ namespace Pikouna_Engine.WeatherViewComponents
                     foreach (var obj in renderObjects)
                     {
                         var color = Colors.White;
-                        color.R = color.G = (byte)(255 - (5 * obj.RenderHierarchy));
                         
                         float nightTimeModifier = (float)OzoraViewModel.Instance.NightTimeModifier;
                         nightTimeModifier = (float)(Math.Clamp(nightTimeModifier - 0.33, 0, 1) * 1.25);
@@ -86,6 +85,11 @@ namespace Pikouna_Engine.WeatherViewComponents
                         //float blueMultiplier = 1 - (float)Math.Clamp(Math.Sqrt(nightTimeModifier * 1.05), 0, 1);
                         float blueMultiplier = 1 - (float)Math.Clamp((2 * nightTimeModifier * (Math.Pow(nightTimeModifier - 0.6, 5) * 6.43 + 0.5)) * 1.025, 0, 1);
 
+                        // make sure the background color is correct
+                        if (CloudsCanvas.ClearColor != Colors.Transparent) CloudsCanvas.ClearColor = color;
+
+                        color.R = color.G = (byte)(255 - (5 * obj.RenderHierarchy + nightTimeModifier / 10));
+                        
                         color.R = (byte)(color.R * redMultiplier);
                         color.G = (byte)(color.G * greenMultiplier);
                         color.B = (byte)(color.B * blueMultiplier);

@@ -31,6 +31,7 @@ namespace Pikouna_Engine.WeatherViewComponents
             this.InitializeComponent();
             this.Loaded += CloudsView_Loaded;
             WeatherViewModel.Instance.PropertyChanged += Instance_PropertyChanged;
+            OzoraViewModel.Instance.NightTimeUpdate += Instance_NightTimeUpdate;
         }
 
         private void CloudsView_Loaded(object sender, RoutedEventArgs e)
@@ -76,6 +77,20 @@ namespace Pikouna_Engine.WeatherViewComponents
                     {
                         var color = Colors.White;
                         color.R = color.G = (byte)(255 - (5 * obj.RenderHierarchy));
+                        
+                        float nightTimeModifier = (float)OzoraViewModel.Instance.NightTimeModifier;
+                        nightTimeModifier = (float)(Math.Clamp(nightTimeModifier - 0.33, 0, 1) * 1.25);
+                        float redMultiplier = 1 - (float)Math.Clamp((3 * nightTimeModifier * (Math.Pow(nightTimeModifier - 0.66, 3) * 1.7 + 0.374)), 0, 1);
+                        //float redMultiplier = 1 - (float)Math.Clamp(Math.Sqrt(nightTimeModifier * 1.2), 0, 1);
+                        float greenMultiplier = 1 - (float)Math.Clamp(Math.Sqrt(nightTimeModifier * 1.25), 0, 1);
+                        //float blueMultiplier = 1 - (float)Math.Clamp(Math.Sqrt(nightTimeModifier * 1.05), 0, 1);
+                        float blueMultiplier = 1 - (float)Math.Clamp((2 * nightTimeModifier * (Math.Pow(nightTimeModifier - 0.6, 5) * 6.43 + 0.5)) * 1.025, 0, 1);
+
+                        color.R = (byte)(color.R * redMultiplier);
+                        color.G = (byte)(color.G * greenMultiplier);
+                        color.B = (byte)(color.B * blueMultiplier);
+
+
                         ds.FillCircle(obj.Translation, (float)obj.Radius, color);
                     }
                 }
@@ -84,11 +99,15 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void CloudsCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            Debug.WriteLine(CloudsCanvas.ActualHeight * CloudsCanvas.ActualWidth);
             if (Clouds.Count() > 0)
             {
                 foreach (var cloud in Clouds) cloud.ManageProperties(CloudsCanvas.ActualHeight * CloudsCanvas.ActualWidth);
             }
+            CloudsCanvas.Invalidate();
+        }
+
+        private void Instance_NightTimeUpdate(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
             CloudsCanvas.Invalidate();
         }
     }

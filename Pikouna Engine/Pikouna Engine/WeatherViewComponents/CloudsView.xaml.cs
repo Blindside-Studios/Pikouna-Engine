@@ -27,7 +27,9 @@ namespace Pikouna_Engine.WeatherViewComponents
         List<CloudMainEntity> Clouds = new List<CloudMainEntity> { };
         List<CloudRenderObject> renderedClouds = new();
         public static double maxCloudWidth = 0;
+        private Point areaSize = new Point(0, 0);
         private DispatcherTimer _timer;
+        private double motionModifier = 1;
 
         public CloudsView()
         {
@@ -41,7 +43,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         {
             maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 500000));
             WeatherViewModel.Instance.CloudCover = 50;
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 15; i++)
             {
                 Clouds.Add(CloudMainEntity.RequestNewCloud(CloudsCanvas.ActualHeight * CloudsCanvas.ActualWidth));
             }
@@ -63,11 +65,12 @@ namespace Pikouna_Engine.WeatherViewComponents
             var areaWidth = CloudsCanvas.ActualWidth;
             foreach (var cloud in Clouds)
             {
-                cloud.Translation += new Vector2((float)cloud.MovementSpeed, 0);
+                cloud.Translation += new Vector2((float)(cloud.MovementSpeed * motionModifier), 0);
                 if (cloud.Translation.X > 1 + cloud.Radius/areaWidth)
                 {
                     cloud.Translation = new Vector2((float)-(cloud.Radius/areaWidth), cloud.Translation.Y);
                 }
+                cloud.animateChildren();
             }
 
             //collect clouds to render again and render
@@ -115,24 +118,31 @@ namespace Pikouna_Engine.WeatherViewComponents
 
                 // make sure the background color is correct
                 if (CloudsCanvas.ClearColor != Colors.Transparent) CloudsCanvas.ClearColor = color;
-
+                
                 foreach (var obj in renderedClouds)
                 {
-                    var finalColor = Colors.White;
-                    finalColor.R = finalColor.G = (byte)(255 - (5 * obj.RenderHierarchy + nightTimeModifier / 10));
+                    if (obj.Translation.X > -obj.Radius && 
+                        obj.Translation.Y > -obj.Radius && 
+                        obj.Translation.X < areaSize.X + obj.Radius && 
+                        obj.Translation.Y < areaSize.Y + obj.Radius)
+                    {
+                        var finalColor = Colors.White;
+                        finalColor.R = finalColor.G = (byte)(255 - (5 * obj.RenderHierarchy + nightTimeModifier / 10));
 
-                    finalColor.R = (byte)(finalColor.R * redMultiplier);
-                    finalColor.G = (byte)(finalColor.G * greenMultiplier);
-                    finalColor.B = (byte)(finalColor.B * blueMultiplier);
+                        finalColor.R = (byte)(finalColor.R * redMultiplier);
+                        finalColor.G = (byte)(finalColor.G * greenMultiplier);
+                        finalColor.B = (byte)(finalColor.B * blueMultiplier);
 
 
-                    ds.FillCircle(obj.Translation, (float)obj.Radius, finalColor);
+                        ds.FillCircle(obj.Translation, (float)obj.Radius, finalColor);
+                    }
                 }
             }
         }
 
         private void CloudsCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
         {
+            areaSize = new Point(CloudsCanvas.ActualWidth, CloudsCanvas.ActualHeight);
             maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 500000));
             if (Clouds.Count() > 0)
             {
@@ -166,7 +176,7 @@ namespace Pikouna_Engine.WeatherViewComponents
             var cloud = new CloudMainEntity
             {
                 Translation = new Vector2((float)rnd.NextDouble(), (float)rnd.NextDouble()),
-                MovementSpeed = rnd.NextDouble()/2000 + 0.00005
+                MovementSpeed = rnd.NextDouble()/3000 + 0.0001
             };
             cloud.ManageProperties(AreaSize);
             return cloud;
@@ -215,6 +225,11 @@ namespace Pikouna_Engine.WeatherViewComponents
             }
             list = list.OrderBy(o => o.RenderHierarchy).ToList();
             return list;
+        }
+
+        public void animateChildren()
+        {
+
         }
 
         public double Radius { get; set; }

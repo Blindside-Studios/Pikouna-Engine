@@ -8,12 +8,15 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
@@ -30,7 +33,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         public static double motionModifier = 1;
         private int numberOfClouds = 50;
         private Point areaSize = new Point(0, 0);
-        private DispatcherTimer _timer;
+        private DispatcherTimer _cloudsAnimationTimer;
 
         public CloudsView()
         {
@@ -42,22 +45,17 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void CloudsView_Loaded(object sender, RoutedEventArgs e)
         {
-            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 1000000) + 10);
-            for (int i = 0; i < numberOfClouds; i++)
-            {
-                Clouds.Add(CloudMainEntity.RequestNewCloud(CloudsCanvas.ActualHeight * CloudsCanvas.ActualWidth, (float)i / numberOfClouds));
-            }
-            renderedClouds = GetRenderingTargets();
+            DrawClouds();
 
             handleAnimations();
         }
 
         private void handleAnimations()
         {
-            _timer = new DispatcherTimer();
-            _timer.Interval = TimeSpan.FromMilliseconds(17); // Fires 60 times per second
-            _timer.Tick += AnimationTimer_Tick;
-            _timer.Start();
+            _cloudsAnimationTimer = new DispatcherTimer();
+            _cloudsAnimationTimer.Interval = TimeSpan.FromMilliseconds(17); // Fires 60 times per second
+            _cloudsAnimationTimer.Tick += AnimationTimer_Tick;
+            _cloudsAnimationTimer.Start();
         }
 
         private void AnimationTimer_Tick(object sender, object e)
@@ -80,13 +78,18 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void Instance_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 1000000) + 10);
+            DrawClouds();
+        }
+
+        private void DrawClouds()
+        {
+            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 1000000));
 
             if (WeatherViewModel.Instance.CloudCover != 0 && Clouds.Count == 0)
             {
                 for (int i = 0; i < numberOfClouds; i++)
                 {
-                    Clouds.Add(CloudMainEntity.RequestNewCloud(CloudsCanvas.ActualHeight * CloudsCanvas.ActualWidth, (float)i/numberOfClouds));
+                    Clouds.Add(CloudMainEntity.RequestNewCloud(CloudsCanvas.ActualHeight * CloudsCanvas.ActualWidth, (float)i / numberOfClouds));
                 }
             }
             else if (WeatherViewModel.Instance.CloudCover == 0 && Clouds.Count != 0) Clouds.Clear();
@@ -146,7 +149,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void CloudsCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             areaSize = new Point(CloudsCanvas.ActualWidth, CloudsCanvas.ActualHeight);
-            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 1000000) + 10);
+            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 1000000));
             if (Clouds.Count() > 0)
             {
                 foreach (var cloud in Clouds) cloud.ManageProperties(CloudsCanvas.ActualHeight * CloudsCanvas.ActualWidth);
@@ -191,7 +194,7 @@ namespace Pikouna_Engine.WeatherViewComponents
             var cloudCover = WeatherViewModel.Instance.CloudCover;
             var attachments = Convert.ToInt32(Math.Round(cloudCover / 20)) + 2;
 
-            if (cloudCover > 0) this.Radius = cloudCover * (AreaSize / 1000000) + 10;
+            if (cloudCover > 0) this.Radius = cloudCover * (AreaSize / 1000000);
             else this.Radius = 0;
 
             if (AttachedClouds == null) AttachedClouds = new List<CloudAttachmentBlob>();

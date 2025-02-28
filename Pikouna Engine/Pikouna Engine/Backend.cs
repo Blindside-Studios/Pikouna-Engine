@@ -11,6 +11,7 @@ using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Pikouna_Engine
@@ -312,12 +313,12 @@ namespace Pikouna_Engine
         }
         private WeatherType _weatherType = WeatherType.ClearSky;
 
-        public double CloudCover
+        internal double CloudCover
         {
             get => _cloudCover;
-            set
+            private set
             {
-                if (value != _cloudCover)
+                if (Math.Abs(value - _cloudCover) > 0.01)
                 {
                     _cloudCover = value;
                     OnPropertyChanged(nameof(CloudCover));
@@ -326,8 +327,60 @@ namespace Pikouna_Engine
         }
         private double _cloudCover = 0;
 
-        // used for the Xaml binding
-        public ObservableCollection<WeatherType> WeatherValues { get; set; }
+        public double CloudCoverageExternal
+        {
+            get => _cloudCoverage;
+            set
+            {
+                if (Math.Abs(value - _cloudCoverage) > 0.01)
+                {
+                    _cloudCoverage = value;
+                    AnimateCloudCoverage(value);
+                }
+            }
+        }
+        private double _cloudCoverage = 0;
+
+        private CancellationTokenSource _animationCancellationToken;
+
+        private async void AnimateCloudCoverage(double targetValue)
+        {
+            _animationCancellationToken?.Cancel();
+            _animationCancellationToken = new CancellationTokenSource();
+            CancellationToken token = _animationCancellationToken.Token;
+
+            double startValue = CloudCover;
+            double duration = 0.25;
+            int steps = 15;
+            double timePerStep = duration / steps;
+
+            try
+            {
+                for (int i = 0; i <= steps; i++)
+                {
+                    if (token.IsCancellationRequested) return;
+
+                    double t = (double)i / steps;
+                    CloudCover = Lerp(startValue, targetValue, t);
+                    await Task.Delay(TimeSpan.FromSeconds(timePerStep), token);
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // Swallow the exception to prevent crashes when animations are interrupted
+            }
+
+            CloudCover = targetValue;
+        }
+
+        private static double Lerp(double start, double end, double t)
+        {
+            t = 1 - (1 - t) * (1 - t);
+            return start + (end - start) * t;
+        }
+
+        // Used for XAML binding
+        public ObservableCollection<WeatherType> WeatherValues { get; set; } = new ObservableCollection<WeatherType>();
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName)

@@ -19,6 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.UI.ViewManagement;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -34,6 +35,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         private int numberOfClouds = 50;
         private Point areaSize = new Point(0, 0);
         private DispatcherTimer _cloudsAnimationTimer;
+        UISettings uiSettings = new UISettings();
 
         public CloudsView()
         {
@@ -46,7 +48,6 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void CloudsView_Loaded(object sender, RoutedEventArgs e)
         {
             DrawClouds();
-
             handleAnimations();
         }
 
@@ -60,20 +61,23 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void AnimationTimer_Tick(object sender, object e)
         {
-            var areaWidth = CloudsCanvas.ActualWidth;
-            foreach (var cloud in Clouds)
+            if (uiSettings.AnimationsEnabled)
             {
-                cloud.Translation += new Vector2((float)(cloud.MovementSpeed * (1 + cloud.SpeedBoost) * motionModifier), 0);
-                if (cloud.Translation.X > 1 + cloud.Radius/areaWidth)
+                var areaWidth = CloudsCanvas.ActualWidth;
+                foreach (var cloud in Clouds)
                 {
-                    cloud.Translation = new Vector2((float)-(cloud.Radius/areaWidth), cloud.Translation.Y);
+                    cloud.Translation += new Vector2((float)(cloud.MovementSpeed * (1 + cloud.SpeedBoost) * motionModifier), 0);
+                    if (cloud.Translation.X > 1 + cloud.Radius / areaWidth)
+                    {
+                        cloud.Translation = new Vector2((float)-(cloud.Radius / areaWidth), cloud.Translation.Y);
+                    }
+                    cloud.animateChildren();
                 }
-                cloud.animateChildren();
-            }
 
-            //collect clouds to render again and render
-            renderedClouds = GetRenderingTargets();
-            CloudsCanvas.Invalidate();
+                //collect clouds to render again and render
+                renderedClouds = GetRenderingTargets();
+                CloudsCanvas.Invalidate();
+            }
         }
 
         private void Instance_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

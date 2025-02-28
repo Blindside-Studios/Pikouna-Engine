@@ -13,6 +13,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.UI.ViewManagement;
 
 namespace Pikouna_Engine
 {
@@ -334,8 +335,10 @@ namespace Pikouna_Engine
             {
                 if (Math.Abs(value - _cloudCoverage) > 0.01)
                 {
+                    UISettings uiSettings = new UISettings();
                     _cloudCoverage = value;
-                    AnimateCloudCoverage(value);
+                    if (uiSettings.AnimationsEnabled) AnimateCloudCoverage(value);
+                    else CloudCover = value;
                 }
             }
         }

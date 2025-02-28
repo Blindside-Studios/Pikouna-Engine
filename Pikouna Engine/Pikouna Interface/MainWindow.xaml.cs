@@ -29,9 +29,16 @@ namespace Pikouna_Interface
         public MainWindow()
         {
             this.InitializeComponent();
+            this.Activated += MainWindow_Activated;
             WeatherViewModel.Instance.WeatherValues = new ObservableCollection<WeatherType>(Enum.GetValues(typeof(WeatherType)) as WeatherType[]);
             ControlPanel.DataContext = Pikouna_Engine.WeatherViewModel.Instance;
+            AllowAnimationsToggle.DataContext = ApplicationViewModel.Instance;
             ContentFrame.NavigateToType(typeof(Pikouna_Engine.WeatherView), null, null);
+        }
+
+        private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
+        {
+            ApplicationViewModel.Instance.CanPlayAnimations = args.WindowActivationState != WindowActivationState.Deactivated;
         }
 
         private void EverythingGrid_PointerMoved(object sender, PointerRoutedEventArgs e)

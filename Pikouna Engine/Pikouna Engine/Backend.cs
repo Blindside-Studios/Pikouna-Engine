@@ -164,7 +164,7 @@ namespace Pikouna_Engine
         public void CreateNewOpacity()
         {
             Random rnd = new Random();
-            double _newOpacity = (double)rnd.Next(-10, 10) * MaximumChangePerUpdate * 0.1;
+            double _newOpacity = (double)rnd.Next(-10, 10) * MaximumChangePerUpdate * ApplicationViewModel.Instance.MotionModifier * 0.1;
             Opacity = Opacity + _lastOpacityChange + _newOpacity;
         }
     }
@@ -384,6 +384,105 @@ namespace Pikouna_Engine
 
         // Used for XAML binding
         public ObservableCollection<WeatherType> WeatherValues { get; set; } = new ObservableCollection<WeatherType>();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public class ApplicationViewModel : INotifyPropertyChanged
+    {
+        private static ApplicationViewModel _instance;
+        public static ApplicationViewModel Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new ApplicationViewModel();
+                }
+                return _instance;
+            }
+        }
+
+        internal bool AreAnimationsPlaying
+        {
+            get => _areAnimationsPlaying;
+            set
+            {
+                if (_areAnimationsPlaying != value)
+                {
+                    _areAnimationsPlaying = value;
+                    OnPropertyChanged(nameof(AreAnimationsPlaying));
+                }
+            }
+        }
+        private bool _areAnimationsPlaying = true;
+        internal double MotionModifier { get; set; } = 1;
+        
+        public bool CanPlayAnimations
+        {
+            get => _canPlayAnimations;
+            set
+            {
+                if (_canPlayAnimations != value)
+                {
+                    AnimateAnimations(value);
+                    _canPlayAnimations = value;
+                }
+            }
+        }
+        private bool _canPlayAnimations = true;
+
+        private CancellationTokenSource _animationCancellationToken;
+        private async void AnimateAnimations(bool targetValue)
+        {
+            _animationCancellationToken?.Cancel();
+            _animationCancellationToken = new CancellationTokenSource();
+            CancellationToken token = _animationCancellationToken.Token;
+
+            double targetModifier = 0;
+            if (targetValue == true)
+            {
+                targetModifier = 1;
+                AreAnimationsPlaying = true;
+            }
+
+            double startValue = MotionModifier;
+            double duration = 0.5; // Animation time in seconds
+            int steps = 30; // More steps = smoother animation
+            double timePerStep = duration / steps;
+
+            try
+            {
+                for (int i = 0; i <= steps; i++)
+                {
+                    if (token.IsCancellationRequested) return;
+
+                    double t = (double)i / steps;
+                    MotionModifier = Lerp(startValue, targetModifier, t);
+                    await Task.Delay(TimeSpan.FromSeconds(timePerStep), token);
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // Swallow the exception to prevent crashes when animations are interrupted
+            }
+
+            MotionModifier = targetModifier;
+            if (targetValue == false) AreAnimationsPlaying = false;
+        }
+
+        private static double Lerp(double start, double end, double t)
+        {
+            t = t < 0.5
+                ? 2 * t * t       // Ease-in (slow start)
+                : 1 - Math.Pow(-2 * t + 2, 2) / 2; // Ease-out (slow end)
+
+            return start + (end - start) * t;
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName)

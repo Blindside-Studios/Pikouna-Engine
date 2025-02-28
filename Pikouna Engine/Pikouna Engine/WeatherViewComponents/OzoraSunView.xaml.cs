@@ -161,7 +161,7 @@ namespace Pikouna_Engine.WeatherViewComponents
             AnimatedStars = Calculations.GenerateStarPositions(Convert.ToInt32(_workingHeight * _workingWidth / 2000 * 0.5), true);
 
             twinklingTimer.Interval = TimeSpan.FromMilliseconds(1000/_starFramerate); // Adjust interval as needed
-            twinklingTimer.Tick += (s, e) => { if (uiSettings.AnimationsEnabled) StarCanvas.Invalidate(); };
+            twinklingTimer.Tick += (s, e) => { if (uiSettings.AnimationsEnabled && ApplicationViewModel.Instance.AreAnimationsPlaying) StarCanvas.Invalidate(); };
 
             Ozora.Physics.StartSimulation();
             Ozora.Physics.MouseCursorEngaged = true;

@@ -31,7 +31,6 @@ namespace Pikouna_Engine.WeatherViewComponents
         List<CloudMainEntity> Clouds = new List<CloudMainEntity> { };
         List<CloudRenderObject> renderedClouds = new();
         public static double maxCloudWidth = 0;
-        public static double motionModifier = 1;
         private int numberOfClouds = 50;
         private Point areaSize = new Point(0, 0);
         private DispatcherTimer _cloudsAnimationTimer;
@@ -41,8 +40,15 @@ namespace Pikouna_Engine.WeatherViewComponents
         {
             this.InitializeComponent();
             this.Loaded += CloudsView_Loaded;
-            WeatherViewModel.Instance.PropertyChanged += Instance_PropertyChanged;
-            OzoraViewModel.Instance.NightTimeUpdate += Instance_NightTimeUpdate;
+            WeatherViewModel.Instance.PropertyChanged += CloudCoverageChanged;
+            OzoraViewModel.Instance.NightTimeUpdate += NightTimeChanged;
+            ApplicationViewModel.Instance.PropertyChanged += AppPreferencesChanged;
+        }
+
+        private void AppPreferencesChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (ApplicationViewModel.Instance.AreAnimationsPlaying) _cloudsAnimationTimer.Start();
+            else _cloudsAnimationTimer.Stop();
         }
 
         private void CloudsView_Loaded(object sender, RoutedEventArgs e)
@@ -56,7 +62,7 @@ namespace Pikouna_Engine.WeatherViewComponents
             _cloudsAnimationTimer = new DispatcherTimer();
             _cloudsAnimationTimer.Interval = TimeSpan.FromMilliseconds(17); // Fires 60 times per second
             _cloudsAnimationTimer.Tick += AnimationTimer_Tick;
-            _cloudsAnimationTimer.Start();
+            if(ApplicationViewModel.Instance.AreAnimationsPlaying) _cloudsAnimationTimer.Start();
         }
 
         private void AnimationTimer_Tick(object sender, object e)
@@ -66,7 +72,7 @@ namespace Pikouna_Engine.WeatherViewComponents
                 var areaWidth = CloudsCanvas.ActualWidth;
                 foreach (var cloud in Clouds)
                 {
-                    cloud.Translation += new Vector2((float)(cloud.MovementSpeed * (1 + cloud.SpeedBoost) * motionModifier), 0);
+                    cloud.Translation += new Vector2((float)(cloud.MovementSpeed * (1 + cloud.SpeedBoost) * ApplicationViewModel.Instance.MotionModifier), 0);
                     if (cloud.Translation.X > 1 + cloud.Radius / areaWidth)
                     {
                         cloud.Translation = new Vector2((float)-(cloud.Radius / areaWidth), cloud.Translation.Y);
@@ -80,7 +86,7 @@ namespace Pikouna_Engine.WeatherViewComponents
             }
         }
 
-        private void Instance_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void CloudCoverageChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             DrawClouds();
         }
@@ -162,7 +168,7 @@ namespace Pikouna_Engine.WeatherViewComponents
             CloudsCanvas.Invalidate();
         }
 
-        private void Instance_NightTimeUpdate(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void NightTimeChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             CloudsCanvas.Invalidate();
         }
@@ -318,7 +324,7 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         public void animateAngles()
         {
-            this.AttachmentAngle += this.AngularMovementSpeed * CloudsView.motionModifier;
+            this.AttachmentAngle += this.AngularMovementSpeed * ApplicationViewModel.Instance.MotionModifier;
             foreach (var cloud in AttachedClouds)
             {
                 cloud.animateAngles();

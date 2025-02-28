@@ -28,7 +28,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         List<CloudRenderObject> renderedClouds = new();
         public static double maxCloudWidth = 0;
         public static double motionModifier = 1;
-        private int numberOfClouds = 15;
+        private int numberOfClouds = 50;
         private Point areaSize = new Point(0, 0);
         private DispatcherTimer _timer;
 
@@ -42,7 +42,7 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void CloudsView_Loaded(object sender, RoutedEventArgs e)
         {
-            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 1000000) + 20);
+            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 1000000) + 10);
             for (int i = 0; i < numberOfClouds; i++)
             {
                 Clouds.Add(CloudMainEntity.RequestNewCloud(CloudsCanvas.ActualHeight * CloudsCanvas.ActualWidth, (float)i / numberOfClouds));
@@ -65,7 +65,7 @@ namespace Pikouna_Engine.WeatherViewComponents
             var areaWidth = CloudsCanvas.ActualWidth;
             foreach (var cloud in Clouds)
             {
-                cloud.Translation += new Vector2((float)(cloud.MovementSpeed * motionModifier), 0);
+                cloud.Translation += new Vector2((float)(cloud.MovementSpeed * (1 + cloud.SpeedBoost) * motionModifier), 0);
                 if (cloud.Translation.X > 1 + cloud.Radius/areaWidth)
                 {
                     cloud.Translation = new Vector2((float)-(cloud.Radius/areaWidth), cloud.Translation.Y);
@@ -80,7 +80,7 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void Instance_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 1000000) + 20);
+            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 1000000) + 10);
 
             if (WeatherViewModel.Instance.CloudCover != 0 && Clouds.Count == 0)
             {
@@ -146,7 +146,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void CloudsCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             areaSize = new Point(CloudsCanvas.ActualWidth, CloudsCanvas.ActualHeight);
-            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 1000000) + 20);
+            maxCloudWidth = (2.58 * WeatherViewModel.Instance.CloudCover * (CloudsCanvas.ActualWidth * CloudsCanvas.ActualHeight / 1000000) + 10);
             if (Clouds.Count() > 0)
             {
                 foreach (var cloud in Clouds) cloud.ManageProperties(CloudsCanvas.ActualHeight * CloudsCanvas.ActualWidth);
@@ -179,7 +179,8 @@ namespace Pikouna_Engine.WeatherViewComponents
             var cloud = new CloudMainEntity
             {
                 Translation = new Vector2((float)rnd.NextDouble(), yOffset),
-                MovementSpeed = rnd.NextDouble()/3000 + 0.0001
+                MovementSpeed = rnd.NextDouble()/5000 + 0.00025,
+                SpeedBoost = 0
             };
             cloud.ManageProperties(AreaSize);
             return cloud;
@@ -190,7 +191,7 @@ namespace Pikouna_Engine.WeatherViewComponents
             var cloudCover = WeatherViewModel.Instance.CloudCover;
             var attachments = Convert.ToInt32(Math.Round(cloudCover / 20)) + 2;
 
-            if (cloudCover > 0) this.Radius = cloudCover * (AreaSize / 1000000) + 20;
+            if (cloudCover > 0) this.Radius = cloudCover * (AreaSize / 1000000) + 10;
             else this.Radius = 0;
 
             if (AttachedClouds == null) AttachedClouds = new List<CloudAttachmentBlob>();
@@ -241,6 +242,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         public double Radius { get; set; }
         public Vector2 Translation { get; set; }
         public double MovementSpeed { get; set; }
+        public double SpeedBoost { get; set; }
         public List<CloudAttachmentBlob> AttachedClouds { get; set; }
     }
 

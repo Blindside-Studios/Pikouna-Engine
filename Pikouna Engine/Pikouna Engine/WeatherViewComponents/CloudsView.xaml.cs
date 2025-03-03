@@ -121,6 +121,13 @@ namespace Pikouna_Engine.WeatherViewComponents
                 float nightTimeModifier = (float)OzoraViewModel.Instance.NightTimeModifier;
                 nightTimeModifier = (float)(Math.Clamp(nightTimeModifier - 0.33, 0, 1) * 1.25);
 
+                if (WeatherViewModel.Instance.CloudCover > 50)
+                {
+                    color.R = (byte)(color.R * (1 - (WeatherViewModel.Instance.CloudCover - 50) / 100));
+                    color.G = (byte)(color.G * (1 - (WeatherViewModel.Instance.CloudCover - 50) / 100));
+                    color.B = (byte)(color.B * (1 - (WeatherViewModel.Instance.CloudCover - 50) / 100));
+                }
+
                 float redMultiplier = 1 - (float)Math.Clamp((3 * nightTimeModifier * (Math.Pow(nightTimeModifier - 0.66, 3) * 1.7 + 0.374)), 0, 1);
                 float greenMultiplier = 1 - (float)Math.Clamp(Math.Sqrt(nightTimeModifier * 1.25), 0, 1);
                 float blueMultiplier = 1 - (float)Math.Clamp((2 * nightTimeModifier * (Math.Pow(nightTimeModifier - 0.6, 5) * 6.43 + 0.5)) * 1.025, 0, 1);
@@ -130,11 +137,12 @@ namespace Pikouna_Engine.WeatherViewComponents
                 color.B = (byte)(color.B * blueMultiplier);
 
                 // make sure the background color is correct
-                var fullCloudThreshold = 70;
+                var fullCloudThreshold = 75;
                 if (WeatherViewModel.Instance.CloudCover >= fullCloudThreshold)
                 {
                     var backgroundColor = color;
-                    backgroundColor.A = (byte)(25.5 * (WeatherViewModel.Instance.CloudCover - fullCloudThreshold) / ((100 - fullCloudThreshold) / 10));
+                    backgroundColor.A = (byte)(255 * (WeatherViewModel.Instance.CloudCover - 75) * 4 / 100);
+                    //backgroundColor.A = (byte)(25.5 * (WeatherViewModel.Instance.CloudCover - fullCloudThreshold) / ((100 - fullCloudThreshold) / 10));
                     CloudsCanvas.ClearColor = backgroundColor;
                 }
                 else CloudsCanvas.ClearColor = Colors.Transparent;

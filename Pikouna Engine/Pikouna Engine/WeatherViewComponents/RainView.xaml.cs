@@ -75,16 +75,13 @@ namespace Pikouna_Engine.WeatherViewComponents
             }
             if (!uiSettings.AnimationsEnabled || !ApplicationViewModel.Instance.AreAnimationsPlaying)
             {
-                while (RainDrops.Count != WeatherViewModel.Instance.Showers * 100)
+                while (RainDrops.Count < WeatherViewModel.Instance.Showers * 100)
                 {
-                    if (RainDrops.Count < WeatherViewModel.Instance.Showers * 100)
-                    {
-                        RainDrops.Add(RainDrop.CreateNewRainDrop());
-                    }
-                    else
-                    {
-                        RainDrops.RemoveAt(rnd.Next(0, RainDrops.Count() - 1));
-                    }
+                    RainDrops.Add(RainDrop.CreateNewRainDrop());
+                }
+                while (RainDrops.Count > WeatherViewModel.Instance.Showers * 100)
+                {
+                    RainDrops.RemoveAt(rnd.Next(0, RainDrops.Count() - 1));
                 }
             }
             RainCanvas.Invalidate();

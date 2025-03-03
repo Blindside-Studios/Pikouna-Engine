@@ -319,7 +319,7 @@ namespace Pikouna_Engine
         {
             // TODO: Make this work with inches if that is ever implemented
             get => _showers;
-            private set
+            set
             {
                 if (value != _showers)
                 {

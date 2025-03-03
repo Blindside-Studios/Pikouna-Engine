@@ -20,6 +20,7 @@
     <None Remove="WeatherViewComponents\HailView.xaml" />
     <None Remove="WeatherViewComponents\OzoraSunView.xaml" />
     <None Remove="WeatherViewComponents\RainView.xaml" />
+    <None Remove="WeatherViewComponents\SnowView.xaml" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Graphics.Win2D" Version="1.3.1" />
@@ -34,6 +35,9 @@
     <None Update="SceneComponents\ChateauDombrage.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Page Update="WeatherViewComponents\SnowView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Update="WeatherViewComponents\HailView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

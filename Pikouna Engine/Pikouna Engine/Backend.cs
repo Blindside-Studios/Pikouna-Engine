@@ -358,6 +358,20 @@ namespace Pikouna_Engine
         }
         private double _hail = 0;
 
+        public double Snow
+        {
+            get => _snow;
+            set
+            {
+                if (value != _snow)
+                {
+                    _snow = Math.Clamp(value, 0, 5);
+                    OnPropertyChanged(nameof(Snow));
+                }
+            }
+        }
+        private double _snow = 0;
+
         internal double CloudCover
         {
             get => _cloudCover;

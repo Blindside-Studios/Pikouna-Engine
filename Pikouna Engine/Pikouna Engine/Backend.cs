@@ -1,5 +1,6 @@
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -328,6 +329,20 @@ namespace Pikouna_Engine
             }
         }
         private double _showers = 0;
+
+        public double WindSpeed
+        {
+            get => _windSpeed;
+            set
+            {
+                if (value != _windSpeed)
+                {
+                    _windSpeed = Math.Clamp(value, 0, 100);
+                    OnPropertyChanged(nameof(WindSpeed));
+                }
+            }
+        }
+        private double _windSpeed = 20;
 
         internal double CloudCover
         {

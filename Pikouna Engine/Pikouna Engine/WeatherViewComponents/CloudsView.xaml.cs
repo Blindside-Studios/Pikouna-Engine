@@ -72,7 +72,7 @@ namespace Pikouna_Engine.WeatherViewComponents
                 var areaWidth = CloudsCanvas.ActualWidth;
                 foreach (var cloud in Clouds)
                 {
-                    cloud.Translation += new Vector2((float)(cloud.MovementSpeed * (1 + cloud.SpeedBoost) * ApplicationViewModel.Instance.MotionModifier), 0);
+                    cloud.Translation += new Vector2((float)(cloud.MovementSpeed * (WeatherViewModel.Instance.WindSpeed / 20) * ApplicationViewModel.Instance.MotionModifier), 0);
                     if (cloud.Translation.X > 1 + cloud.Radius / areaWidth)
                     {
                         cloud.Translation = new Vector2((float)-(cloud.Radius / areaWidth), cloud.Translation.Y);
@@ -324,7 +324,7 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         public void animateAngles()
         {
-            this.AttachmentAngle += this.AngularMovementSpeed * ApplicationViewModel.Instance.MotionModifier;
+            this.AttachmentAngle += this.AngularMovementSpeed * ApplicationViewModel.Instance.MotionModifier * (WeatherViewModel.Instance.WindSpeed / 20);
             foreach (var cloud in AttachedClouds)
             {
                 cloud.animateAngles();

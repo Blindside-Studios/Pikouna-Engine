@@ -64,6 +64,14 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void RainChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             RainAmountMM = WeatherViewModel.Instance.Showers;
+            for (int i = 0; i < RainDrops.Count(); i++)
+            {
+                try
+                {
+                    RainDrops[i].recalculateAngle();
+                }
+                catch { }
+            }
         }
 
         private void handleAnimations()
@@ -77,7 +85,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void AnimationTimer_Tick(object sender, object e)
         {
             Random rnd = new Random();
-            for (int i = 0; i < (RainAmountMM / 2) * ApplicationViewModel.Instance.MotionModifier; i++) RainDrops.Add(RainDrop.CreateNewRainDrop());
+            for (int i = 0; i < (RainAmountMM * 3) * ApplicationViewModel.Instance.MotionModifier; i++) RainDrops.Add(RainDrop.CreateNewRainDrop());
 
             if (uiSettings.AnimationsEnabled)
             {
@@ -117,24 +125,28 @@ namespace Pikouna_Engine.WeatherViewComponents
 
                 foreach (var obj in RainDrops)
                 {
-                    /*if (obj.Translation.X > -obj.Radius &&
-                        obj.Translation.Y > -obj.Radius &&
-                        obj.Translation.X < areaSize.X + obj.Radius &&
-                        obj.Translation.Y < areaSize.Y + obj.Radius)
-                    {*/
+                    var leadingTranslation = new System.Numerics.Vector2(obj.Translation.X * areaDimensions.X, obj.Translation.Y * areaDimensions.Y);
+                    var trailingTranslation = new Vector2(obj.Translation.X * areaDimensions.X + (float)Math.Sin(obj.Angle) * obj.Length, obj.Translation.Y * areaDimensions.Y + (float)Math.Cos(obj.Angle) * obj.Length);
+
+
+                    if (leadingTranslation.X > -obj.Length &&
+                        leadingTranslation.Y > -obj.Length &&
+                        trailingTranslation.X < areaDimensions.X + obj.Length &&
+                        trailingTranslation.Y < areaDimensions.Y + obj.Length)
+                    {
 
                     ds.DrawLine(
-                        new System.Numerics.Vector2(obj.Translation.X * areaDimensions.X, obj.Translation.Y * areaDimensions.Y), 
-                        new Vector2(obj.Translation.X * areaDimensions.X + (float)Math.Sin(obj.Angle) * obj.Length, obj.Translation.Y * areaDimensions.Y + (float)Math.Cos(obj.Angle) * obj.Length),
+                        leadingTranslation, 
+                        trailingTranslation,
                         color, 
                         obj.Width, 
                         new CanvasStrokeStyle() 
                         { 
-                            StartCap = CanvasCapStyle.Round, 
+                            // use triangles instead of circles to avoid anti aliasing of rounded shapes
+                            StartCap = CanvasCapStyle.Triangle, 
                             EndCap = CanvasCapStyle.Triangle 
                         });
-                    //ds.FillCircle(new System.Numerics.Vector2(obj.Translation.X * areaDimensions.X, obj.Translation.Y * areaDimensions.Y), (float)obj.Width, color);
-                    //}
+                    }
                 }
             }
         }
@@ -152,27 +164,43 @@ namespace Pikouna_Engine.WeatherViewComponents
             public float Width { get; set; }
             public float Speed { get; set; }
             public float Angle { get; set; }
+            public float WindAffection { get; set; }
+            internal float Proximity { get; set; }
 
             public static RainDrop CreateNewRainDrop()
             {
                 Random rnd = new Random();
-                float position = (float)(rnd.NextDouble() * 1.5 - 0.5);
+                float position = (float)(rnd.NextDouble() * 2 - 1);
                 float proximity = (float)(rnd.NextDouble() * 0.75 + 0.25);
+                float speed = (float)(0.2 * proximity);
+                float windSpeed = (float)WeatherViewModel.Instance.WindSpeed;
+                float windAffection = (float)((rnd.NextDouble() * 0.5 + 1));
                 
                 var rainDrop = new RainDrop()
                 {
                     Translation = new System.Numerics.Vector2(position, (float)-0.25),
-                    Length = 100 * proximity,
+                    Length = 100 * proximity + windSpeed,
                     Width = 3 * proximity,
-                    Speed = 0.1f * proximity,
-                    Angle = (float)0.2
+                    Speed = speed,
+                    Angle = (float)Math.Atan(windSpeed * windAffection * 0.01),
+                    WindAffection = windAffection,
+                    Proximity = proximity
                 };
                 return rainDrop;
             }
 
+            public void recalculateAngle()
+            {
+                Random rnd = new Random();
+                float windSpeed = (float)WeatherViewModel.Instance.WindSpeed;
+                float windAffection = (float)((rnd.NextDouble() * 0.5 + 1));
+                Length = 100 * this.Proximity + windSpeed;
+                this.Angle = (float)Math.Atan(windSpeed * windAffection * 0.01);
+            }
+
             public void AnimateDroplet()
             {
-                this.Translation += new System.Numerics.Vector2((float)(0.125 * this.Speed * ApplicationViewModel.Instance.MotionModifier), (float)(this.Speed * ApplicationViewModel.Instance.MotionModifier));
+                this.Translation += new System.Numerics.Vector2((float)(WindAffection * (WeatherViewModel.Instance.WindSpeed / 150) * this.Speed * ApplicationViewModel.Instance.MotionModifier), (float)(this.Speed * ApplicationViewModel.Instance.MotionModifier));
             }
         }
     }

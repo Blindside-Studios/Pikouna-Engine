@@ -64,6 +64,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void RainChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             RainAmountMM = WeatherViewModel.Instance.Showers;
+            Random rnd = new Random();
             for (int i = 0; i < RainDrops.Count(); i++)
             {
                 try
@@ -72,6 +73,21 @@ namespace Pikouna_Engine.WeatherViewComponents
                 }
                 catch { }
             }
+            if (!uiSettings.AnimationsEnabled || !ApplicationViewModel.Instance.AreAnimationsPlaying)
+            {
+                while (RainDrops.Count != WeatherViewModel.Instance.Showers * 100)
+                {
+                    if (RainDrops.Count < WeatherViewModel.Instance.Showers * 100)
+                    {
+                        RainDrops.Add(RainDrop.CreateNewRainDrop());
+                    }
+                    else
+                    {
+                        RainDrops.RemoveAt(rnd.Next(0, RainDrops.Count() - 1));
+                    }
+                }
+            }
+            RainCanvas.Invalidate();
         }
 
         private void handleAnimations()
@@ -170,7 +186,9 @@ namespace Pikouna_Engine.WeatherViewComponents
             public static RainDrop CreateNewRainDrop()
             {
                 Random rnd = new Random();
-                float position = (float)(rnd.NextDouble() * 2 - 1);
+                Vector2 position = new Vector2((float)(rnd.NextDouble() * 2 - 1), (float)-0.25);
+                UISettings settings = new UISettings();
+                if (!settings.AnimationsEnabled || !ApplicationViewModel.Instance.AreAnimationsPlaying) position = new Vector2(position.X, (float)rnd.NextDouble());
                 float proximity = (float)(rnd.NextDouble() * 0.75 + 0.25);
                 float speed = (float)(0.2 * proximity);
                 float windSpeed = (float)WeatherViewModel.Instance.WindSpeed;
@@ -178,7 +196,7 @@ namespace Pikouna_Engine.WeatherViewComponents
                 
                 var rainDrop = new RainDrop()
                 {
-                    Translation = new System.Numerics.Vector2(position, (float)-0.25),
+                    Translation = position,
                     Length = 50 * proximity + windSpeed,
                     Width = 2 * proximity,
                     Speed = speed,

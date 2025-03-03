@@ -25,6 +25,7 @@
             <Slider x:Name="CloudSlider" Minimum="0" Maximum="100" StepFrequency="1" Header="Cloud Cover (%)" Value="{Binding CloudCoverageExternal, Mode=TwoWay}"/>
             <Slider x:Name="RainSlider" Minimum="0" Maximum="50" StepFrequency="1" Header="Rain (mm)" Value="{Binding Showers, Mode=TwoWay}"/>
             <Slider x:Name="WindSpeedSlider" Minimum="0" Maximum="120" StepFrequency="1" Header="Wind Speed (km/h)" Value="{Binding WindSpeed, Mode=TwoWay}"/>
+            <Slider x:Name="HailSlider" Minimum="0" Maximum="2" StepFrequency="1" Header="Hail Level" Value="{Binding Hail, Mode=TwoWay}"/>
         </StackPanel>
         
         <Grid x:Name="EverythingGrid" PointerEntered="EverythingGrid_PointerEntered" PointerExited="EverythingGrid_PointerExited" PointerMoved="EverythingGrid_PointerMoved" Grid.Column="1">

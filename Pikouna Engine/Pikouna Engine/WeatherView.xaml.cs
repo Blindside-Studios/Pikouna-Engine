@@ -30,6 +30,7 @@ namespace Pikouna_Engine
             SunView.NavigateToType(typeof(WeatherViewComponents.OzoraSunView), null, null);
             CloudsView.NavigateToType(typeof(WeatherViewComponents.CloudsView), null, null);
             RainView.NavigateToType(typeof(WeatherViewComponents.RainView), null, null);
+            HailView.NavigateToType(typeof(WeatherViewComponents.HailView), null, null);
 
             // Load the foreground
             // TODO: Implement that it can load different scenes, but who cares rn?

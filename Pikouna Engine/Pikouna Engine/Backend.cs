@@ -344,6 +344,20 @@ namespace Pikouna_Engine
         }
         private double _windSpeed = 20;
 
+        public double Hail
+        {
+            get => _hail;
+            set
+            {
+                if (value != _hail)
+                {
+                    _hail = Math.Clamp(value, 0, 2);
+                    OnPropertyChanged(nameof(Hail));
+                }
+            }
+        }
+        private double _hail = 0;
+
         internal double CloudCover
         {
             get => _cloudCover;

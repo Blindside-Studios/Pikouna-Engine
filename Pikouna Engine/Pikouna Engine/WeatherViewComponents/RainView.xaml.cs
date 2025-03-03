@@ -85,7 +85,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void AnimationTimer_Tick(object sender, object e)
         {
             Random rnd = new Random();
-            for (int i = 0; i < (RainAmountMM * 3) * ApplicationViewModel.Instance.MotionModifier; i++) RainDrops.Add(RainDrop.CreateNewRainDrop());
+            for (int i = 0; i < RainAmountMM * 2 * ApplicationViewModel.Instance.MotionModifier; i++) RainDrops.Add(RainDrop.CreateNewRainDrop());
 
             if (uiSettings.AnimationsEnabled)
             {
@@ -179,8 +179,8 @@ namespace Pikouna_Engine.WeatherViewComponents
                 var rainDrop = new RainDrop()
                 {
                     Translation = new System.Numerics.Vector2(position, (float)-0.25),
-                    Length = 100 * proximity + windSpeed,
-                    Width = 3 * proximity,
+                    Length = 50 * proximity + windSpeed,
+                    Width = 2 * proximity,
                     Speed = speed,
                     Angle = (float)Math.Atan(windSpeed * windAffection * 0.01),
                     WindAffection = windAffection,
@@ -194,7 +194,7 @@ namespace Pikouna_Engine.WeatherViewComponents
                 Random rnd = new Random();
                 float windSpeed = (float)WeatherViewModel.Instance.WindSpeed;
                 float windAffection = (float)((rnd.NextDouble() * 0.5 + 1));
-                Length = 100 * this.Proximity + windSpeed;
+                Length = 50 * this.Proximity + windSpeed;
                 this.Angle = (float)Math.Atan(windSpeed * windAffection * 0.01);
             }
 

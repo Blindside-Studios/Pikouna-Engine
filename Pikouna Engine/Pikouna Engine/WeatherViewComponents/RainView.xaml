@@ -10,6 +10,6 @@
     mc:Ignorable="d">
 
     <Grid>
-        <win2d:CanvasControl x:Name="RainCanvas" Opacity="0.4"  ClearColor="Transparent" Draw="RainCanvas_Draw"  SizeChanged="RainCanvas_SizeChanged"/>
+        <win2d:CanvasControl x:Name="RainCanvas" Opacity="0.15"  ClearColor="Transparent" Draw="RainCanvas_Draw"  SizeChanged="RainCanvas_SizeChanged"/>
     </Grid>
 </Page>

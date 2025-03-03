@@ -77,7 +77,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void AnimationTimer_Tick(object sender, object e)
         {
             Random rnd = new Random();
-            for (int i = 0; i < RainAmountMM / 2; i++) RainDrops.Add(RainDrop.CreateNewRainDrop());
+            for (int i = 0; i < (RainAmountMM / 2) * ApplicationViewModel.Instance.MotionModifier; i++) RainDrops.Add(RainDrop.CreateNewRainDrop());
 
             if (uiSettings.AnimationsEnabled)
             {

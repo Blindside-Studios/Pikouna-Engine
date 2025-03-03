@@ -314,6 +314,21 @@ namespace Pikouna_Engine
         }
         private WeatherType _weatherType = WeatherType.ClearSky;
 
+        public double Showers
+        {
+            // TODO: Make this work with inches if that is ever implemented
+            get => _showers;
+            private set
+            {
+                if (value != _showers)
+                {
+                    _showers = value;
+                    OnPropertyChanged(nameof(Showers));
+                }
+            }
+        }
+        private double _showers = 0;
+
         internal double CloudCover
         {
             get => _cloudCover;

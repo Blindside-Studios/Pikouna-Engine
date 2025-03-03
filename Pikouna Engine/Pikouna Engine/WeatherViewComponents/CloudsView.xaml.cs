@@ -88,7 +88,7 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void CloudCoverageChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            DrawClouds();
+            if (e.PropertyName == nameof(WeatherViewModel.CloudCover)) DrawClouds();
         }
 
         private void DrawClouds()

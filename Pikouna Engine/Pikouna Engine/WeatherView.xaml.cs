@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -32,6 +33,8 @@ namespace Pikouna_Engine
             RainView.NavigateToType(typeof(WeatherViewComponents.RainView), null, null);
             HailView.NavigateToType(typeof(WeatherViewComponents.HailView), null, null);
             SnowView.NavigateToType(typeof(WeatherViewComponents.SnowView), null, null);
+            FogView1.NavigateToType(typeof(WeatherViewComponents.FogView), null, null);
+            FogView2.NavigateToType(typeof(WeatherViewComponents.FogView), null, null);
 
             // Load the foreground
             // TODO: Implement that it can load different scenes, but who cares rn?
@@ -41,7 +44,18 @@ namespace Pikouna_Engine
 
         private void RequestedWeatherChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            // potentially handle weather changed here later
+            FogView1.OpacityTransition = new ScalarTransition();
+            FogView2.OpacityTransition = new ScalarTransition();
+            if (WeatherViewModel.Instance.WeatherType == WeatherType.Fog)
+            {
+                FogView1.Opacity = 0.5;
+                FogView2.Opacity = 0.5;
+            }
+            else
+            {
+                FogView1.Opacity = 0;
+                FogView2.Opacity = 0;
+            }
         }
     }
 }

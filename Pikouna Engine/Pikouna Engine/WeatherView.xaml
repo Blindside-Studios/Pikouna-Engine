@@ -11,7 +11,9 @@
     <Grid>
         <Frame x:Name="SunView"/>
         <Frame x:Name="CloudsView"/>
+        <Frame x:Name="FogView1" Opacity="0"/>
         <Frame x:Name="SceneFrame" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        <Frame x:Name="FogView2" Opacity="0"/>
         <Frame x:Name="RainView"/>
         <Frame x:Name="HailView"/>
         <Frame x:Name="SnowView"/>

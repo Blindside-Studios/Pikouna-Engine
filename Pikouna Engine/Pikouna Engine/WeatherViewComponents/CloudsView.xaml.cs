@@ -137,11 +137,11 @@ namespace Pikouna_Engine.WeatherViewComponents
                 color.B = (byte)(color.B * blueMultiplier);
 
                 // make sure the background color is correct
-                var fullCloudThreshold = 75;
+                const double fullCloudThreshold = 25;
                 if (WeatherViewModel.Instance.CloudCover >= fullCloudThreshold)
                 {
                     var backgroundColor = color;
-                    backgroundColor.A = (byte)(255 * (WeatherViewModel.Instance.CloudCover - 75) * 4 / 100);
+                    backgroundColor.A = (byte)(255 * (WeatherViewModel.Instance.CloudCover - fullCloudThreshold) * (100 / (100 - fullCloudThreshold)) / 100);
                     //backgroundColor.A = (byte)(25.5 * (WeatherViewModel.Instance.CloudCover - fullCloudThreshold) / ((100 - fullCloudThreshold) / 10));
                     CloudsCanvas.ClearColor = backgroundColor;
                 }
@@ -155,8 +155,9 @@ namespace Pikouna_Engine.WeatherViewComponents
                         obj.Translation.Y < areaSize.Y + obj.Radius)
                     {
                         var finalColor = color;
-                        finalColor.R = (byte)Math.Clamp(finalColor.R - (5 * obj.RenderHierarchy + nightTimeModifier / 10), 0, 255);
-                        finalColor.G = (byte)Math.Clamp(finalColor.G - (5 * obj.RenderHierarchy + nightTimeModifier / 10), 0, 255);
+                        finalColor.R = (byte)Math.Clamp(finalColor.R - (7 * (5 - obj.RenderHierarchy) + nightTimeModifier / 10), 0, 255);
+                        finalColor.G = (byte)Math.Clamp(finalColor.G - (7 * (5 - obj.RenderHierarchy) + nightTimeModifier / 10), 0, 255);
+                        finalColor.B = (byte)Math.Clamp(finalColor.B - (5 * (5 - obj.RenderHierarchy) + nightTimeModifier / 10), 0, 255);
 
                         ds.FillCircle(obj.Translation, (float)obj.Radius, finalColor);
                     }

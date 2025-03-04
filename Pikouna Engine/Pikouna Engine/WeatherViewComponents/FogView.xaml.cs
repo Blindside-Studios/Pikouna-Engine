@@ -27,12 +27,16 @@ namespace Pikouna_Engine.WeatherViewComponents
         {
             this.InitializeComponent();
             OzoraViewModel.Instance.NightTimeUpdate += Instance_NightTimeUpdate;
+            updateColor();
         }
 
-        private void FogCanvas_Draw(Microsoft.Graphics.Canvas.UI.Xaml.CanvasControl sender, Microsoft.Graphics.Canvas.UI.Xaml.CanvasDrawEventArgs args)
+        private async void Instance_NightTimeUpdate(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            var drawingSession = args.DrawingSession;
-            
+            updateColor();
+        }
+
+        private void updateColor()
+        {
             Windows.UI.Color color = Microsoft.UI.Colors.LightGray;
             var modifier = (1 - (OzoraViewModel.Instance.NightTimeModifier * 0.75));
             var newColor = Windows.UI.Color.FromArgb(255,
@@ -40,21 +44,7 @@ namespace Pikouna_Engine.WeatherViewComponents
                 (byte)(color.G * modifier),
                 (byte)(color.B * modifier)
             );
-
-            // Ensure the UI update happens on the UI thread
-            //Rect rect = new Rect(0, 0, FogCanvas.ActualWidth, FogCanvas.ActualHeight);
-            //drawingSession.FillRectangle(rect, newColor);
             FogCanvas.ClearColor = newColor;
-        }
-
-        private async void Instance_NightTimeUpdate(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            FogCanvas.Invalidate();
-        }
-
-        private void FogCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            FogCanvas.Invalidate();
         }
     }
 }

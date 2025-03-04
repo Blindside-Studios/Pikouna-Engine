@@ -10,6 +10,6 @@
     mc:Ignorable="d">
 
     <Grid>
-        <win2d:CanvasControl x:Name="FogCanvas" Draw="FogCanvas_Draw" SizeChanged="FogCanvas_SizeChanged"/>
+        <win2d:CanvasControl x:Name="FogCanvas"/>
     </Grid>
 </Page>

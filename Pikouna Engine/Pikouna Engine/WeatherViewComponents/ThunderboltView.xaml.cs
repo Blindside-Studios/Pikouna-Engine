@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -27,6 +28,7 @@ namespace Pikouna_Engine.WeatherViewComponents
     /// </summary>
     public sealed partial class ThunderboltView : Page
     {
+        List<Vector2> _dotMatrix = new List<Vector2>();
         List<LightningBoltPiece> _lightningBolt = new();
 
         public ThunderboltView()
@@ -43,18 +45,80 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void GenerateLightningBolt()
         {
             _lightningBolt.Clear();
+            _dotMatrix.Clear();
             
-            Random rnd = new Random();
-            var width = LightningBoltCanvas.ActualWidth;
-            var lastPiece = new LightningBoltPiece() { EndPoint = new Vector2((float)Math.Clamp(rnd.NextDouble() * width, width / 4, width * 0.75), -10) };
-            while (lastPiece.EndPoint.Y < LightningBoltCanvas.ActualHeight)
+            Random rnd = new Random(); 
+            for (int i = 0; i < 10000; i++)
             {
-                var bolt = LightningBoltPiece.GenerateNewMainPiece(lastPiece.EndPoint, LightningBoltCanvas.ActualWidth);
+                _dotMatrix.Add(new Vector2((float)rnd.NextDouble(), (float)rnd.NextDouble() - 0.1f));
+            }
+
+            var width = LightningBoltCanvas.ActualWidth;
+            var lastPiece = new LightningBoltPiece() { EndPoint = new Vector2((float)Math.Clamp(rnd.NextDouble(), 0.25, 0.75), -0.1f) };
+            
+            while (lastPiece.EndPoint.Y < 0.8)
+            {
+                LightningBoltPiece bolt = new LightningBoltPiece()
+                {
+                    StartPoint = lastPiece.EndPoint,
+                    EndPoint = findClosestPoint(lastPiece.EndPoint, true),
+                    IsInMainBolt = true,
+                    StrayFromMainDepth = 0
+                };
                 lastPiece = bolt;
                 _lightningBolt.Add(bolt);
-                _lightningBolt.AddRange(bolt.AddDetails(1, bolt.EndPoint));
+                if (rnd.NextDouble() < 0.05) _lightningBolt.AddRange(AddDetails(0, lastPiece.EndPoint)); // only add "subarms" in 10% of cases
             }
             LightningBoltCanvas.Invalidate();
+        }
+
+        private List<LightningBoltPiece> AddDetails(int parentDepth, Vector2 startingPoint)
+        {
+            List<LightningBoltPiece> list = new();
+            int maxDepth = 20;
+            
+            Random rnd = new Random();
+            LightningBoltPiece lastPiece = new LightningBoltPiece() { StrayFromMainDepth = parentDepth, EndPoint = startingPoint };
+
+            while (lastPiece.StrayFromMainDepth < maxDepth)
+            {
+                LightningBoltPiece piece = new LightningBoltPiece()
+                {
+                    StartPoint = lastPiece.EndPoint,
+                    EndPoint = findClosestPoint(lastPiece.EndPoint, false),
+                    IsInMainBolt = false,
+                    StrayFromMainDepth = lastPiece.StrayFromMainDepth + 1
+                };
+
+                if (piece.EndPoint.Y > 0 && piece.EndPoint.Y < 0.85)
+                {
+                    list.Add(piece);
+                    lastPiece = piece;
+                    if (rnd.Next() < 0.2) list.AddRange(AddDetails(piece.StrayFromMainDepth, piece.EndPoint));
+                }
+                else break;
+            }
+            return list;
+        }
+
+        private Vector2 findClosestPoint(Vector2 StartPoint, bool preferDownwards)
+        {
+            var filteredPoints = _dotMatrix.Where(p => p.Y > StartPoint.Y);
+
+            IOrderedEnumerable<Vector2> closest;
+
+            float verticalImportanceModifier = 2f;
+            if (preferDownwards) verticalImportanceModifier = 5;
+
+            closest = filteredPoints
+            .OrderBy(p => (p.Y - StartPoint.Y) + verticalImportanceModifier * Math.Abs(p.X - StartPoint.X));
+
+            if (preferDownwards) return closest.FirstOrDefault();
+            else
+            {
+                Random rnd = new Random();
+                return closest.ElementAt(rnd.Next(0, Convert.ToInt32(closest.Count() / 250)));
+            }
         }
 
         private void LightningBoltCanvas_Draw(Microsoft.Graphics.Canvas.UI.Xaml.CanvasControl sender, Microsoft.Graphics.Canvas.UI.Xaml.CanvasDrawEventArgs args)
@@ -65,9 +129,25 @@ namespace Pikouna_Engine.WeatherViewComponents
                 StartCap = CanvasCapStyle.Round,
                 EndCap = CanvasCapStyle.Round
             };
+            Vector2 screenDimensions = new Vector2((float)LightningBoltCanvas.ActualWidth, (float)LightningBoltCanvas.ActualHeight);
             foreach (var piece in _lightningBolt)
             {
-                ds.DrawLine(piece.StartPoint, piece.EndPoint, Microsoft.UI.Colors.LightYellow, 10 / (piece.StrayFromMainDepth + 1), strokeStyle);
+                var thickness = 15;
+                if (!piece.IsInMainBolt)
+                {
+                    thickness = 10 - piece.StrayFromMainDepth / 2;
+                }
+
+                ds.DrawLine(
+                    new Vector2(piece.StartPoint.X * screenDimensions.X, piece.StartPoint.Y * screenDimensions.Y),
+                    new Vector2(piece.EndPoint.X * screenDimensions.X, piece.EndPoint.Y * screenDimensions.Y),
+                    Microsoft.UI.Colors.LightYellow, 
+                    thickness, 
+                    strokeStyle);
+            }
+            foreach (var dot in _dotMatrix)
+            {
+                ds.FillCircle(new Vector2(dot.X * screenDimensions.X, dot.Y * screenDimensions.Y), 1, Microsoft.UI.Colors.Red);
             }
         }
     }
@@ -78,45 +158,5 @@ namespace Pikouna_Engine.WeatherViewComponents
         public Vector2 EndPoint { get; set; }
         public bool IsInMainBolt { get; set; }
         public int StrayFromMainDepth { get; set; }
-
-        public static LightningBoltPiece GenerateNewMainPiece(Vector2 StartingPoint, double ScreenWidth)
-        {
-            Random rnd = new Random();
-            Vector2 path = new Vector2((float)((rnd.NextDouble() - 0.5) * (ScreenWidth / 10)), (float)(Math.Clamp(rnd.NextDouble() * 100 , 40, 100)));
-            LightningBoltPiece piece = new LightningBoltPiece() {
-                StartPoint = StartingPoint,
-                EndPoint = StartingPoint + path,
-                IsInMainBolt = true,
-                StrayFromMainDepth = 0
-            };
-            return piece;
-        }
-
-        public List<LightningBoltPiece> AddDetails(int depth, Vector2 startingPoint)
-        {
-            List<LightningBoltPiece> list = new();
-
-            int maxDepth = 3;
-            int maxComplexity = 1;
-
-            if (depth <= maxDepth)
-            {
-                for (int i = 0; i < maxComplexity; i++)
-                {
-                    Random rnd = new Random();
-                    Vector2 path = new Vector2((float)((rnd.NextDouble() - 0.5) * 150), (float)(Math.Clamp((rnd.NextDouble() - 0.5) * 200, -100, 100)));
-                    LightningBoltPiece piece = new LightningBoltPiece()
-                    {
-                        StartPoint = startingPoint,
-                        EndPoint = startingPoint + path,
-                        IsInMainBolt = false,
-                        StrayFromMainDepth = depth
-                    };
-                    list.AddRange(piece.AddDetails(depth + 1, piece.EndPoint));
-                    list.Add(piece);
-                }
-            }
-            return list;
-        }
     }
 }

@@ -17,5 +17,6 @@
         <Frame x:Name="RainView"/>
         <Frame x:Name="HailView"/>
         <Frame x:Name="SnowView"/>
+        <Frame x:Name="ThunderstormView"/>
     </Grid>
 </Page>

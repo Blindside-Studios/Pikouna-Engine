@@ -48,7 +48,7 @@ namespace Pikouna_Engine.WeatherViewComponents
             _dotMatrix.Clear();
             
             Random rnd = new Random(); 
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < 4000; i++)
             {
                 _dotMatrix.Add(new Vector2((float)rnd.NextDouble(), (float)rnd.NextDouble() - 0.1f));
             }
@@ -67,7 +67,7 @@ namespace Pikouna_Engine.WeatherViewComponents
                 };
                 lastPiece = bolt;
                 _lightningBolt.Add(bolt);
-                if (rnd.NextDouble() < 0.05) _lightningBolt.AddRange(AddDetails(0, lastPiece.EndPoint)); // only add "subarms" in 10% of cases
+                if (rnd.NextDouble() < (1 - lastPiece.EndPoint.Y) / 5) _lightningBolt.AddRange(AddDetails(0, lastPiece.EndPoint)); // only add "subarms" in 10% of cases
             }
             LightningBoltCanvas.Invalidate();
         }
@@ -75,9 +75,11 @@ namespace Pikouna_Engine.WeatherViewComponents
         private List<LightningBoltPiece> AddDetails(int parentDepth, Vector2 startingPoint)
         {
             List<LightningBoltPiece> list = new();
-            int maxDepth = 20;
+            int maxDepth = 30;
             
             Random rnd = new Random();
+            var preferredDir = PreferredDirection.Left;
+            if (rnd.NextDouble() < 0.5) preferredDir = PreferredDirection.Right;
             LightningBoltPiece lastPiece = new LightningBoltPiece() { StrayFromMainDepth = parentDepth, EndPoint = startingPoint };
 
             while (lastPiece.StrayFromMainDepth < maxDepth)
@@ -85,30 +87,39 @@ namespace Pikouna_Engine.WeatherViewComponents
                 LightningBoltPiece piece = new LightningBoltPiece()
                 {
                     StartPoint = lastPiece.EndPoint,
-                    EndPoint = findClosestPoint(lastPiece.EndPoint, false),
+                    EndPoint = findClosestPoint(lastPiece.EndPoint, false, lastPiece.StepsSinceLastJunction + 1, preferredDir),
                     IsInMainBolt = false,
-                    StrayFromMainDepth = lastPiece.StrayFromMainDepth + 1
+                    StrayFromMainDepth = lastPiece.StrayFromMainDepth + 1,
+                    StepsSinceLastJunction = lastPiece.StepsSinceLastJunction + 1,
                 };
 
                 if (piece.EndPoint.Y > 0 && piece.EndPoint.Y < 0.85)
                 {
                     list.Add(piece);
                     lastPiece = piece;
-                    if (rnd.Next() < 0.2) list.AddRange(AddDetails(piece.StrayFromMainDepth, piece.EndPoint));
+                    if (rnd.NextDouble() < 0.05)
+                    {
+                        list.AddRange(AddDetails(piece.StrayFromMainDepth, piece.EndPoint));
+                    }
                 }
                 else break;
             }
             return list;
         }
 
-        private Vector2 findClosestPoint(Vector2 StartPoint, bool preferDownwards)
+        private Vector2 findClosestPoint(Vector2 StartPoint, bool preferDownwards, int stepsSinceLastJunction = 0, PreferredDirection preferredDirection = PreferredDirection.Unspecified)
         {
             var filteredPoints = _dotMatrix.Where(p => p.Y > StartPoint.Y);
+            if (preferredDirection == PreferredDirection.Left) filteredPoints = filteredPoints.Where(p => p.X < StartPoint.X);
+            else if (preferredDirection == PreferredDirection.Right) filteredPoints = filteredPoints.Where(p => p.X > StartPoint.X);
 
             IOrderedEnumerable<Vector2> closest;
 
-            float verticalImportanceModifier = 2f;
-            if (preferDownwards) verticalImportanceModifier = 5;
+            float verticalImportanceModifier = 5;
+            if (!preferDownwards)
+            {
+                verticalImportanceModifier = (float)(0.75 + (stepsSinceLastJunction) / 5);
+            }
 
             closest = filteredPoints
             .OrderBy(p => (p.Y - StartPoint.Y) + verticalImportanceModifier * Math.Abs(p.X - StartPoint.X));
@@ -116,8 +127,12 @@ namespace Pikouna_Engine.WeatherViewComponents
             if (preferDownwards) return closest.FirstOrDefault();
             else
             {
-                Random rnd = new Random();
-                return closest.ElementAt(rnd.Next(0, Convert.ToInt32(closest.Count() / 250)));
+                if (closest.Count() > 0)
+                {
+                    Random rnd = new Random();
+                    return closest.ElementAt(rnd.Next(0, Convert.ToInt32(closest.Count() / 500)));
+                }
+                else return new Vector2(-1, -1);
             }
         }
 
@@ -132,10 +147,10 @@ namespace Pikouna_Engine.WeatherViewComponents
             Vector2 screenDimensions = new Vector2((float)LightningBoltCanvas.ActualWidth, (float)LightningBoltCanvas.ActualHeight);
             foreach (var piece in _lightningBolt)
             {
-                var thickness = 15;
+                var thickness = 12;
                 if (!piece.IsInMainBolt)
                 {
-                    thickness = 10 - piece.StrayFromMainDepth / 2;
+                    thickness = 5 - piece.StrayFromMainDepth / 6;
                 }
 
                 ds.DrawLine(
@@ -145,10 +160,10 @@ namespace Pikouna_Engine.WeatherViewComponents
                     thickness, 
                     strokeStyle);
             }
-            foreach (var dot in _dotMatrix)
+            /*foreach (var dot in _dotMatrix)
             {
                 ds.FillCircle(new Vector2(dot.X * screenDimensions.X, dot.Y * screenDimensions.Y), 1, Microsoft.UI.Colors.Red);
-            }
+            }*/
         }
     }
 
@@ -158,5 +173,14 @@ namespace Pikouna_Engine.WeatherViewComponents
         public Vector2 EndPoint { get; set; }
         public bool IsInMainBolt { get; set; }
         public int StrayFromMainDepth { get; set; }
+        public int StepsSinceLastJunction { get; set; } = 0;
+        public PreferredDirection PreferredDirection { get; set; } = PreferredDirection.Unspecified;
+    }
+
+    enum PreferredDirection
+    {
+        Unspecified,
+        Left,
+        Right
     }
 }

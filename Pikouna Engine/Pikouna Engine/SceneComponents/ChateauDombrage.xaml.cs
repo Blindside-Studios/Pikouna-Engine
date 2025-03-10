@@ -108,6 +108,7 @@ namespace Pikouna_Engine.SceneComponents
                     // artificially extend the rectangles to prevent seams from forming
                     if (sideWidth > 0)
                     {
+                        // TODO: Update the color in these for clouds and lightning
                         args.DrawingSession.FillRectangle(-1, -1, sideWidth + 2, canvasHeight + 2, gradientBrush);
                         args.DrawingSession.FillRectangle(canvasWidth - sideWidth - 1, -1, sideWidth + 2, canvasHeight + 2, gradientBrush);
                     }

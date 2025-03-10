@@ -166,32 +166,36 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void GenerateLightningBolt()
         {
-            _dotMatrix.Clear();
-            _lightningBolt.Clear();
-            
-            Random rnd = new Random(); 
-            for (int i = 0; i < 4000; i++)
+            UISettings settings = new UISettings();
+            if (settings.AnimationsEnabled && ApplicationViewModel.Instance.CanPlayAnimations)
             {
-                _dotMatrix.Add(new Vector2((float)rnd.NextDouble(), (float)rnd.NextDouble() - 0.1f));
-            }
+                _dotMatrix.Clear();
+                _lightningBolt.Clear();
 
-            var width = LightningBoltCanvas.ActualWidth;
-            var lastPiece = new LightningBoltPiece() { EndPoint = new Vector2((float)Math.Clamp(rnd.NextDouble(), 0.25, 0.75), -0.1f) };
-            
-            while (lastPiece.EndPoint.Y < 0.8)
-            {
-                LightningBoltPiece bolt = new LightningBoltPiece()
+                Random rnd = new Random();
+                for (int i = 0; i < 4000; i++)
                 {
-                    StartPoint = lastPiece.EndPoint,
-                    EndPoint = findClosestPoint(lastPiece.EndPoint, true),
-                    IsInMainBolt = true,
-                    StrayFromMainDepth = 0
-                };
-                lastPiece = bolt;
-                _lightningBolt.Add(bolt);
-                if (rnd.NextDouble() < (1 - lastPiece.EndPoint.Y) / 5) _lightningBolt.AddRange(AddDetails(0, lastPiece.EndPoint)); // only add "subarms" in 10% of cases
+                    _dotMatrix.Add(new Vector2((float)rnd.NextDouble(), (float)rnd.NextDouble() - 0.1f));
+                }
+
+                var width = LightningBoltCanvas.ActualWidth;
+                var lastPiece = new LightningBoltPiece() { EndPoint = new Vector2((float)Math.Clamp(rnd.NextDouble(), 0.25, 0.75), -0.1f) };
+
+                while (lastPiece.EndPoint.Y < 0.8)
+                {
+                    LightningBoltPiece bolt = new LightningBoltPiece()
+                    {
+                        StartPoint = lastPiece.EndPoint,
+                        EndPoint = findClosestPoint(lastPiece.EndPoint, true),
+                        IsInMainBolt = true,
+                        StrayFromMainDepth = 0
+                    };
+                    lastPiece = bolt;
+                    _lightningBolt.Add(bolt);
+                    if (rnd.NextDouble() < (1 - lastPiece.EndPoint.Y) / 5) _lightningBolt.AddRange(AddDetails(0, lastPiece.EndPoint)); // only add "subarms" in 10% of cases
+                }
+                LightningBoltCanvas.Invalidate();
             }
-            LightningBoltCanvas.Invalidate();
         }
 
         private List<LightningBoltPiece> AddDetails(int parentDepth, Vector2 startingPoint)

@@ -132,6 +132,7 @@ namespace Pikouna_Engine.WeatherViewComponents
                 while (_strikeBloomModifier < 10)
                 {
                     _strikeBloomModifier += 2;
+                    WeatherViewModel.Instance.LightningStrikeBloom = _strikeBloomModifier;
                     LightningBoltCanvas.Invalidate();
                     await Task.Delay(1);
                 }
@@ -140,24 +141,28 @@ namespace Pikouna_Engine.WeatherViewComponents
                 while (_strikeBloomModifier > 5)
                 {
                     _strikeBloomModifier -= 0.1f;
+                    WeatherViewModel.Instance.LightningStrikeBloom = _strikeBloomModifier;
                     LightningBoltCanvas.Invalidate();
                     await Task.Delay(2);
                 }
                 while (_strikeBloomModifier < 7)
                 {
                     _strikeBloomModifier += 0.2f;
+                    WeatherViewModel.Instance.LightningStrikeBloom = _strikeBloomModifier;
                     LightningBoltCanvas.Invalidate();
                     await Task.Delay(2);
                 }
                 while (_strikeBloomModifier > 1)
                 {
                     _strikeBloomModifier -= 0.1f;
+                    WeatherViewModel.Instance.LightningStrikeBloom = _strikeBloomModifier;
                     LightningBoltCanvas.Invalidate();
                     await Task.Delay(2);
                 }
                 while (_strikeBloomModifier > 0)
                 {
                     _strikeBloomModifier -= 0.01f;
+                    WeatherViewModel.Instance.LightningStrikeBloom = _strikeBloomModifier;
                     LightningBoltCanvas.Invalidate();
                     await Task.Delay(3);
                 }

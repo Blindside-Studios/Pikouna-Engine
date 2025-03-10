@@ -47,8 +47,17 @@ namespace Pikouna_Engine.SceneComponents
             _windowWidth = (float)ChateauCanvas.ActualWidth;
             _windowHeight = (float)ChateauCanvas.ActualHeight;
             OzoraViewModel.Instance.NightTimeUpdate += Instance_NightTimeUpdate;
+            WeatherViewModel.Instance.PropertyChanged += Instance_PropertyChanged;
             // this doesnt load this yet for some reason
             ChateauCanvas.Invalidate();
+        }
+
+        private void Instance_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(WeatherViewModel.CloudCover) || e.PropertyName == nameof(WeatherViewModel.LightningStrikeBloom))
+            {
+                ChateauCanvas.Invalidate();
+            }
         }
 
         private void Instance_NightTimeUpdate(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -122,7 +131,7 @@ namespace Pikouna_Engine.SceneComponents
                 }
 
                 // Apply a color matrix effect
-                var colorMatrixEffect = new ColorMatrixEffect
+                var nighttimeEffect = new ColorMatrixEffect
                 {
                     Source = _offscreenTarget,
                     ColorMatrix = new Matrix5x4
@@ -135,8 +144,73 @@ namespace Pikouna_Engine.SceneComponents
                     }
                 };
 
+                float desaturationFactor = (float)WeatherViewModel.Instance.CloudCover / 150f;
+
+                // Standard desaturation formula weights (luminance coefficients)
+                float lumR = 0.3f;
+                float lumG = 0.59f;
+                float lumB = 0.11f;
+
+                var cloudCoverEffect = new ColorMatrixEffect
+                {
+                    Source = nighttimeEffect,
+                    ColorMatrix = new Matrix5x4
+                    {
+                        M11 = (1 - desaturationFactor) + lumR * desaturationFactor,
+                        M12 = lumR * desaturationFactor,
+                        M13 = lumR * desaturationFactor,
+                        M14 = 0,
+                        M21 = lumG * desaturationFactor,
+                        M22 = (1 - desaturationFactor) + lumG * desaturationFactor,
+                        M23 = lumG * desaturationFactor,
+                        M24 = 0,
+                        M31 = lumB * desaturationFactor,
+                        M32 = lumB * desaturationFactor,
+                        M33 = (1 - desaturationFactor) + lumB * desaturationFactor,
+                        M34 = 0,
+                        M41 = 0,
+                        M42 = 0,
+                        M43 = 0,
+                        M44 = 1,
+                        M51 = 0,
+                        M52 = 0,
+                        M53 = 0,
+                        M54 = 0
+                    }
+                };
+
+                float lightningBrightness = WeatherViewModel.Instance.LightningStrikeBloom * 0.05f; // Scale brightness effect
+
+                var lightningEffect = new ColorMatrixEffect
+                {
+                    Source = cloudCoverEffect,
+                    ColorMatrix = new Matrix5x4
+                    {
+                        M11 = 1,
+                        M12 = 0,
+                        M13 = 0,
+                        M14 = 0,
+                        M21 = 0,
+                        M22 = 1,
+                        M23 = 0,
+                        M24 = 0,
+                        M31 = 0,
+                        M32 = 0,
+                        M33 = 1,
+                        M34 = 0,
+                        M41 = 0,
+                        M42 = 0,
+                        M43 = 0,
+                        M44 = 1,
+                        M51 = lightningBrightness,
+                        M52 = lightningBrightness,
+                        M53 = lightningBrightness,
+                        M54 = 0  // Brightness boost
+                    }
+                };
+
                 // Draw the effect onto the main canvas
-                args.DrawingSession.DrawImage(colorMatrixEffect);
+                args.DrawingSession.DrawImage(lightningEffect);
             }
         }
 

@@ -372,6 +372,20 @@ namespace Pikouna_Engine
         }
         private double _snow = 0;
 
+        internal float LightningStrikeBloom
+        {
+            get => _lightningStrikeBloom;
+            set
+            {
+                if (_lightningStrikeBloom != value)
+                {
+                    _lightningStrikeBloom = value;
+                    OnPropertyChanged(nameof(LightningStrikeBloom));
+                }
+            }
+        }
+        private float _lightningStrikeBloom;
+
         internal double CloudCover
         {
             get => _cloudCover;

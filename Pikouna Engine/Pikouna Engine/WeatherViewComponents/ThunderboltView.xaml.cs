@@ -35,17 +35,45 @@ namespace Pikouna_Engine.WeatherViewComponents
         {
             this.InitializeComponent();
             this.Loaded += ThunderboltView_Loaded;
+            WeatherViewModel.Instance.PropertyChanged += Instance_PropertyChanged;
+        }
+
+        private void Instance_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(WeatherViewModel.Instance.WeatherType))
+            {
+                var weather = WeatherViewModel.Instance.WeatherType;
+                if (weather == WeatherType.ThunderstormSlightOrModerate || weather == WeatherType.ThunderstormWithHailSlight || weather == WeatherType.ThunderstormWithHailHeavy)
+                {
+                    startAnimating();
+                }
+                else
+                {
+                    _dotMatrix.Clear();
+                    _lightningBolt.Clear();
+                    LightningBoltCanvas.Invalidate();
+                }
+            }
         }
 
         private void ThunderboltView_Loaded(object sender, RoutedEventArgs e)
+        {
+            var weather = WeatherViewModel.Instance.WeatherType;
+            if (weather == WeatherType.ThunderstormSlightOrModerate || weather == WeatherType.ThunderstormWithHailSlight || weather == WeatherType.ThunderstormWithHailHeavy)
+            {
+                startAnimating();
+            }
+        }
+
+        private void startAnimating()
         {
             GenerateLightningBolt();
         }
 
         private void GenerateLightningBolt()
         {
-            _lightningBolt.Clear();
             _dotMatrix.Clear();
+            _lightningBolt.Clear();
             
             Random rnd = new Random(); 
             for (int i = 0; i < 4000; i++)

@@ -323,7 +323,8 @@ namespace Pikouna_Engine
             {
                 if (value != _showers)
                 {
-                    _showers = value;
+                    if (ApplicationViewModel.Instance.IsUsingImperial) _showers = value * 25.4; // convert from inches to mm
+                    else _showers = value;
                     OnPropertyChanged(nameof(Showers));
                 }
             }
@@ -337,7 +338,9 @@ namespace Pikouna_Engine
             {
                 if (value != _windSpeed)
                 {
-                    _windSpeed = Math.Clamp(value, 0, 100);
+                    var windspeed = value;
+                    if (ApplicationViewModel.Instance.IsUsingImperial) windspeed *= 1.60934; // convert from mph to km/h
+                    _windSpeed = Math.Clamp(windspeed, 0, 100);
                     OnPropertyChanged(nameof(WindSpeed));
                 }
             }
@@ -365,7 +368,9 @@ namespace Pikouna_Engine
             {
                 if (value != _snow)
                 {
-                    _snow = Math.Clamp(value, 0, 5);
+                    var snowfall = value;
+                    if (ApplicationViewModel.Instance.IsUsingImperial) snowfall *= 2.54;
+                    _snow = Math.Clamp(snowfall, 0, 5);
                     OnPropertyChanged(nameof(Snow));
                 }
             }
@@ -478,6 +483,11 @@ namespace Pikouna_Engine
                 return _instance;
             }
         }
+
+        public bool IsUsingImperial { get; set; } = false;
+        public SunInteractionStyle SunInteractionStyle { get; set; } = SunInteractionStyle.Gentle;
+        public bool IsBatterySaverEnabled { get; set; } = false;
+        public bool ReduceThunderstormFlashes { get; set; } = false;
 
         internal bool AreAnimationsPlaying
         {
@@ -593,5 +603,12 @@ namespace Pikouna_Engine
         ThunderstormSlightOrModerate,
         ThunderstormWithHailSlight,
         ThunderstormWithHailHeavy
+    }
+
+    public enum SunInteractionStyle
+    {
+        None,
+        Gentle,
+        Bouncy
     }
 }

@@ -67,7 +67,7 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void AnimationTimer_Tick(object sender, object e)
         {
-            if (uiSettings.AnimationsEnabled)
+            if (uiSettings.AnimationsEnabled && !ApplicationViewModel.Instance.IsBatterySaverEnabled)
             {
                 var areaWidth = CloudsCanvas.ActualWidth;
                 foreach (var cloud in Clouds)

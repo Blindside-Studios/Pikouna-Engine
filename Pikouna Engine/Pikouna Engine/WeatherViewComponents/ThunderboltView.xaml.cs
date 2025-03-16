@@ -304,35 +304,38 @@ namespace Pikouna_Engine.WeatherViewComponents
                     }
                 }
 
-                // render bloom as required by rendering into an off-screen area
-                if (_strikeBloomModifier > 1)
+                if (!ApplicationViewModel.Instance.ReduceThunderstormFlashes)
                 {
-                    CanvasRenderTarget lightningTarget = new CanvasRenderTarget(sender, (float)LightningBoltCanvas.ActualWidth, (float)LightningBoltCanvas.ActualHeight, 96);
-                    using (var _ds = lightningTarget.CreateDrawingSession())
+                    // render bloom as required by rendering into an off-screen area
+                    if (_strikeBloomModifier > 1)
                     {
-                        _ds.Clear(Colors.Transparent);
-                        foreach (var piece in _lightningBolt)
+                        CanvasRenderTarget lightningTarget = new CanvasRenderTarget(sender, (float)LightningBoltCanvas.ActualWidth, (float)LightningBoltCanvas.ActualHeight, 96);
+                        using (var _ds = lightningTarget.CreateDrawingSession())
                         {
-                            if (piece.IsInMainBolt)
+                            _ds.Clear(Colors.Transparent);
+                            foreach (var piece in _lightningBolt)
                             {
-                                float thickness = 12;
+                                if (piece.IsInMainBolt)
+                                {
+                                    float thickness = 12;
 
-                                _ds.DrawLine(
-                                        new Vector2(piece.StartPoint.X * screenDimensions.X, piece.StartPoint.Y * screenDimensions.Y),
-                                        new Vector2(piece.EndPoint.X * screenDimensions.X, piece.EndPoint.Y * screenDimensions.Y),
-                                        Microsoft.UI.Colors.LightYellow,
-                                        thickness * (_strikeBloomModifier - 1) * 10,
-                                        strokeStyle);
+                                    _ds.DrawLine(
+                                            new Vector2(piece.StartPoint.X * screenDimensions.X, piece.StartPoint.Y * screenDimensions.Y),
+                                            new Vector2(piece.EndPoint.X * screenDimensions.X, piece.EndPoint.Y * screenDimensions.Y),
+                                            Microsoft.UI.Colors.LightYellow,
+                                            thickness * (_strikeBloomModifier - 1) * 10,
+                                            strokeStyle);
+                                }
                             }
                         }
+                        var blurredLightning = new GaussianBlurEffect
+                        {
+                            Source = lightningTarget,
+                            BlurAmount = _strikeBloomModifier * 15,
+                            BorderMode = EffectBorderMode.Hard
+                        };
+                        ds.DrawImage(blurredLightning);
                     }
-                    var blurredLightning = new GaussianBlurEffect
-                    {
-                        Source = lightningTarget,
-                        BlurAmount = _strikeBloomModifier * 15,
-                        BorderMode = EffectBorderMode.Hard
-                    };
-                    ds.DrawImage(blurredLightning);
                 }
             }
         }

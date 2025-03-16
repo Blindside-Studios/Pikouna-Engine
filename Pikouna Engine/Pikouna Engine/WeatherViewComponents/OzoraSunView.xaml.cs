@@ -131,7 +131,19 @@ namespace Pikouna_Engine.WeatherViewComponents
         {
             Ozora = new OzoraEngine();
 
-            OzoraSettings SunSettings = new OzoraSettings()
+            OzoraSettings SlowSunSettings = new OzoraSettings()
+            {
+                SimulationStyle = SimulationStyle.Sun,
+                FrameRate = 60,
+                MaxVectorDeltaPerFrame = 0.1f,
+                RubberBandingModifier = 0.01f,
+                EnableBorderCollision = true,
+                EnableBounceOnCollision = true,
+                BounceMomentumRetention = 0.5f,
+                TrailingDragCoefficient = 0.03f,
+                TrailingType = TrailingType.Vector
+            };
+            OzoraSettings BouncySunSettings = new OzoraSettings()
             {
                 SimulationStyle = SimulationStyle.Sun,
                 FrameRate = 60,
@@ -143,6 +155,8 @@ namespace Pikouna_Engine.WeatherViewComponents
                 TrailingDragCoefficient = 0.01f,
                 TrailingType = TrailingType.Vector
             };
+
+            OzoraSettings SunSettings = ApplicationViewModel.Instance.SunInteractionStyle == SunInteractionStyle.Gentle ? SlowSunSettings : BouncySunSettings;
 
             Ozora.Physics.Interface = new OzoraInterface()
             {

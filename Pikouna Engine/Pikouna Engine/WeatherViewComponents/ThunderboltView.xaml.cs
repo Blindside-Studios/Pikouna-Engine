@@ -39,6 +39,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         private bool _isRenderingStrike = false;
         private bool _isRenderingStrikeDetails = true;
         private double _pathfindingProgress = 0;
+        private double _removeDetailsAbove = 0;
         private float _strikeBloomModifier = 1;
 
         DispatcherTimer _thunderAnimationTimer;
@@ -98,7 +99,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         {
             if (_thunderAnimationTimer != null) _thunderAnimationTimer.Stop();
             _thunderAnimationTimer = new DispatcherTimer();
-            _thunderAnimationTimer.Interval = TimeSpan.FromMilliseconds(10000); // Fires every 20 seconds
+            _thunderAnimationTimer.Interval = TimeSpan.FromMilliseconds(20000); // Fires every 20 seconds
             _thunderAnimationTimer.Tick += _thunderAnimationTimer_Tick;
             if (ApplicationViewModel.Instance.AreAnimationsPlaying) _thunderAnimationTimer.Start();
         }
@@ -129,36 +130,51 @@ namespace Pikouna_Engine.WeatherViewComponents
                     await Task.Delay(2);
                 }
 
-                while (_strikeBloomModifier < 10)
+                if (!ApplicationViewModel.Instance.ReduceThunderstormFlashes)
                 {
-                    _strikeBloomModifier += 2;
-                    WeatherViewModel.Instance.LightningStrikeBloom = _strikeBloomModifier;
-                    LightningBoltCanvas.Invalidate();
-                    await Task.Delay(1);
-                }
-                _isRenderingStrikeDetails = false;
+                    while (_strikeBloomModifier < 10)
+                    {
+                        _strikeBloomModifier += 2;
+                        WeatherViewModel.Instance.LightningStrikeBloom = _strikeBloomModifier;
+                        LightningBoltCanvas.Invalidate();
+                        await Task.Delay(1);
+                    }
+                    _isRenderingStrikeDetails = false;
 
-                while (_strikeBloomModifier > 5)
-                {
-                    _strikeBloomModifier -= 0.1f;
-                    WeatherViewModel.Instance.LightningStrikeBloom = _strikeBloomModifier;
-                    LightningBoltCanvas.Invalidate();
-                    await Task.Delay(2);
+                    while (_strikeBloomModifier > 5)
+                    {
+                        _strikeBloomModifier -= 0.1f;
+                        WeatherViewModel.Instance.LightningStrikeBloom = _strikeBloomModifier;
+                        LightningBoltCanvas.Invalidate();
+                        await Task.Delay(2);
+                    }
+                    while (_strikeBloomModifier < 7)
+                    {
+                        _strikeBloomModifier += 0.2f;
+                        WeatherViewModel.Instance.LightningStrikeBloom = _strikeBloomModifier;
+                        LightningBoltCanvas.Invalidate();
+                        await Task.Delay(2);
+                    }
+                    while (_strikeBloomModifier > 1)
+                    {
+                        _strikeBloomModifier -= 0.1f;
+                        WeatherViewModel.Instance.LightningStrikeBloom = _strikeBloomModifier;
+                        LightningBoltCanvas.Invalidate();
+                        await Task.Delay(2);
+                    }
                 }
-                while (_strikeBloomModifier < 7)
+                else
                 {
-                    _strikeBloomModifier += 0.2f;
-                    WeatherViewModel.Instance.LightningStrikeBloom = _strikeBloomModifier;
-                    LightningBoltCanvas.Invalidate();
-                    await Task.Delay(2);
+                    while (_removeDetailsAbove < 0.9)
+                    {
+                        _removeDetailsAbove += 0.075;
+                        LightningBoltCanvas.Invalidate();
+                        await Task.Delay(2);
+                    }
                 }
-                while (_strikeBloomModifier > 1)
-                {
-                    _strikeBloomModifier -= 0.1f;
-                    WeatherViewModel.Instance.LightningStrikeBloom = _strikeBloomModifier;
-                    LightningBoltCanvas.Invalidate();
-                    await Task.Delay(2);
-                }
+
+                _isRenderingStrikeDetails = false;
+                _removeDetailsAbove = 0;
                 while (_strikeBloomModifier > 0)
                 {
                     _strikeBloomModifier -= 0.01f;
@@ -166,6 +182,9 @@ namespace Pikouna_Engine.WeatherViewComponents
                     LightningBoltCanvas.Invalidate();
                     await Task.Delay(3);
                 }
+                _strikeBloomModifier = 0;
+                WeatherViewModel.Instance.LightningStrikeBloom = _strikeBloomModifier;
+                LightningBoltCanvas.Invalidate();
             }
         }
 
@@ -282,11 +301,11 @@ namespace Pikouna_Engine.WeatherViewComponents
                 {
                     var renderBolt = true;
                     float thickness = 12;
-                    if (!piece.IsInMainBolt && piece.EndPoint.Y < _pathfindingProgress)
+                    if (!piece.IsInMainBolt && piece.EndPoint.Y < _pathfindingProgress && piece.StartPoint.Y > _removeDetailsAbove)
                     {
                         thickness = 5 - piece.StrayFromMainDepth / 6;
                     }
-                    else if (piece.EndPoint.Y > _pathfindingProgress)
+                    else if (!piece.IsInMainBolt && (piece.EndPoint.Y > _pathfindingProgress || piece.StartPoint.Y < _removeDetailsAbove))
                     {
                         renderBolt = false;
                     }

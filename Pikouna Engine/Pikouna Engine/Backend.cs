@@ -488,6 +488,25 @@ namespace Pikouna_Engine
         public SunInteractionStyle SunInteractionStyle { get; set; } = SunInteractionStyle.Gentle;
         public bool IsBatterySaverEnabled { get; set; } = false;
         public bool ReduceThunderstormFlashes { get; set; } = false;
+        public double Framerate
+        {
+            get => _framerate;
+            set
+            {
+                if (_framerate != value)
+                {
+                    _framerate = value;
+                    if (MotionModifier == _adjustedMotionModifier)
+                    {
+                        _adjustedMotionModifier = 60 / value;
+                        MotionModifier = _adjustedMotionModifier;
+                    }
+                    else _adjustedMotionModifier = 60 / value;
+                    OnPropertyChanged(nameof(Framerate));
+                }
+            }
+        }
+        private double _framerate = 60;
 
         internal bool AreAnimationsPlaying
         {
@@ -503,6 +522,7 @@ namespace Pikouna_Engine
         }
         private bool _areAnimationsPlaying = true;
         internal double MotionModifier { get; set; } = 1;
+        internal double _adjustedMotionModifier = 1;
         
         public bool CanPlayAnimations
         {
@@ -528,7 +548,7 @@ namespace Pikouna_Engine
             double targetModifier = 0;
             if (targetValue == true)
             {
-                targetModifier = 1;
+                targetModifier = _adjustedMotionModifier;
                 AreAnimationsPlaying = true;
             }
 

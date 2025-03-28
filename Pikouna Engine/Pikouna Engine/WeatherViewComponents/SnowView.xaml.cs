@@ -72,7 +72,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void handleAnimations()
         {
             _snowAnimationTimer = new DispatcherTimer();
-            _snowAnimationTimer.Interval = TimeSpan.FromMilliseconds(17); // Fires 60 times per second
+            _snowAnimationTimer.Interval = TimeSpan.FromMilliseconds(1000 / ApplicationViewModel.Instance.Framerate);
             _snowAnimationTimer.Tick += AnimationTimer_Tick;
             if (ApplicationViewModel.Instance.AreAnimationsPlaying) _snowAnimationTimer.Start();
         }

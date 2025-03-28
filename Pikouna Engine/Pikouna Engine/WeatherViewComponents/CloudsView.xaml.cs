@@ -60,7 +60,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void handleAnimations()
         {
             _cloudsAnimationTimer = new DispatcherTimer();
-            _cloudsAnimationTimer.Interval = TimeSpan.FromMilliseconds(17); // Fires 60 times per second
+            _cloudsAnimationTimer.Interval = TimeSpan.FromMilliseconds(1000/ApplicationViewModel.Instance.Framerate);
             _cloudsAnimationTimer.Tick += AnimationTimer_Tick;
             if(ApplicationViewModel.Instance.AreAnimationsPlaying) _cloudsAnimationTimer.Start();
         }

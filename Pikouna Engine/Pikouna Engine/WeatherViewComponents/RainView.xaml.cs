@@ -90,7 +90,7 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void handleAnimations()
         {
             _rainAnimationTimer = new DispatcherTimer();
-            _rainAnimationTimer.Interval = TimeSpan.FromMilliseconds(17); // Fires 60 times per second
+            _rainAnimationTimer.Interval = TimeSpan.FromMilliseconds(1000 / ApplicationViewModel.Instance.Framerate);
             _rainAnimationTimer.Tick += AnimationTimer_Tick;
             if (ApplicationViewModel.Instance.AreAnimationsPlaying) _rainAnimationTimer.Start();
         }

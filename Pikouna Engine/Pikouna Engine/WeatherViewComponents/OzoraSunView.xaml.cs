@@ -130,29 +130,30 @@ namespace Pikouna_Engine.WeatherViewComponents
         private void PhysicsSunSimulation_Loaded(object sender, RoutedEventArgs e)
         {
             Ozora = new OzoraEngine();
+            float framerateAdjustment = (float)ApplicationViewModel.Instance._adjustedMotionModifier;
 
             OzoraSettings SlowSunSettings = new OzoraSettings()
             {
                 SimulationStyle = SimulationStyle.Sun,
-                FrameRate = 60,
-                MaxVectorDeltaPerFrame = 0.1f,
-                RubberBandingModifier = 0.01f,
+                FrameRate = Convert.ToInt32(ApplicationViewModel.Instance.Framerate),
+                MaxVectorDeltaPerFrame = 0.1f * framerateAdjustment,
+                RubberBandingModifier = 0.01f * framerateAdjustment,
                 EnableBorderCollision = true,
                 EnableBounceOnCollision = true,
                 BounceMomentumRetention = 0.5f,
-                TrailingDragCoefficient = 0.03f,
+                TrailingDragCoefficient = 0.03f * framerateAdjustment,
                 TrailingType = TrailingType.Vector
             };
             OzoraSettings BouncySunSettings = new OzoraSettings()
             {
                 SimulationStyle = SimulationStyle.Sun,
-                FrameRate = 60,
-                MaxVectorDeltaPerFrame = 1.5f,
-                RubberBandingModifier = 0.2f,
+                FrameRate = Convert.ToInt32(ApplicationViewModel.Instance.Framerate),
+                MaxVectorDeltaPerFrame = 1.5f * framerateAdjustment,
+                RubberBandingModifier = 0.2f * framerateAdjustment,
                 EnableBorderCollision = true,
                 EnableBounceOnCollision = true,
                 BounceMomentumRetention = 0.8f,
-                TrailingDragCoefficient = 0.01f,
+                TrailingDragCoefficient = 0.01f * framerateAdjustment,
                 TrailingType = TrailingType.Vector
             };
 

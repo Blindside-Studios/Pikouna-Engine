@@ -45,12 +45,17 @@ namespace Pikouna_Engine
 
         private void RequestedWeatherChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            FogView1.OpacityTransition = new ScalarTransition();
-            FogView2.OpacityTransition = new ScalarTransition();
+            FogView1.OpacityTransition = new ScalarTransition() { Duration = TimeSpan.FromMilliseconds(500) };
+            FogView2.OpacityTransition = new ScalarTransition() { Duration = TimeSpan.FromMilliseconds(500) };
             if (WeatherViewModel.Instance.WeatherType == WeatherType.Fog)
             {
                 FogView1.Opacity = 0.5;
                 FogView2.Opacity = 0.5;
+            }
+            else if (WeatherViewModel.Instance.WeatherType == WeatherType.DepositingRimeFog)
+            {
+                FogView1.Opacity = 0.25;
+                FogView2.Opacity = 0.25;
             }
             else
             {

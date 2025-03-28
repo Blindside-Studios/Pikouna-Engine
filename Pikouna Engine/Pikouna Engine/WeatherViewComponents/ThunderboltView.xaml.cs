@@ -63,6 +63,10 @@ namespace Pikouna_Engine.WeatherViewComponents
         {
             var weather = WeatherViewModel.Instance.WeatherType;
             var isCorrectWeather = weather == WeatherType.ThunderstormSlightOrModerate || weather == WeatherType.ThunderstormWithHailSlight || weather == WeatherType.ThunderstormWithHailHeavy;
+            
+            if (_thunderAnimationTimer != null) _thunderAnimationTimer.Stop();
+            _thunderAnimationTimer = null;
+            
             if (isCorrectWeather)
             {
                 startAnimating();
@@ -106,8 +110,13 @@ namespace Pikouna_Engine.WeatherViewComponents
 
         private void _thunderAnimationTimer_Tick(object sender, object e)
         {
-            GenerateLightningBolt();
-            playAnimation();
+            var weather = WeatherViewModel.Instance.WeatherType;
+            var isCorrectWeather = weather == WeatherType.ThunderstormSlightOrModerate || weather == WeatherType.ThunderstormWithHailSlight || weather == WeatherType.ThunderstormWithHailHeavy;
+            if (isCorrectWeather)
+            {
+                GenerateLightningBolt();
+                playAnimation();
+            }
         }
 
         private async void playAnimation()
